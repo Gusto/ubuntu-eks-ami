@@ -51,8 +51,8 @@ sudo pip3 install --upgrade awscli
 sudo apt-get install -y python2.7
 sudo apt-get install -y python-pip
 sudo pip install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz
-#
-#ln -s /root/aws-cfn-bootstrap-latest/init/ubuntu/cfn-hup /etc/init.d/cfn-hup
+
+sudo ln -s /root/aws-cfn-bootstrap-latest/init/ubuntu/cfn-hup /etc/init.d/cfn-hup
 
 ################################################################################
 ### iptables ###################################################################
