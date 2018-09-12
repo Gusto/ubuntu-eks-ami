@@ -1,7 +1,7 @@
 {
   "variables": {
     "aws_region": "us-west-2",
-    "ami_name": "dennis-amazon-eks-ubuntu-18.04-node-{{timestamp}}",
+    "ami_name": "amazon-eks-ubuntu-18.04-node-{{timestamp}}",
     "creator": "{{env `USER`}}",
     "instance_type": "c5.large",
     "encrypted": "false",
