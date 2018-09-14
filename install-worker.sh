@@ -125,7 +125,7 @@ sudo bash -c "cat <<EOF >/etc/apt/sources.list.d/kubernetes.list
 deb http://apt.kubernetes.io/ kubernetes-xenial main
 EOF"
 sudo apt-get update
-sudo apt-get install -y kubelet kubectl
+sudo apt-get install -y kubelet=1.10.7-00 kubectl=1.10.7-00
 sudo apt-mark hold kubelet kubectl
 
 # Install aws-iam-authenticator
