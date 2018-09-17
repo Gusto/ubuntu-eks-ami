@@ -157,4 +157,23 @@ sudo chmod +x /etc/eks/bootstrap.sh
 # Clean up apt caches to reduce the image size
 sudo apt-get clean
 
-# Consider uninstalling unnecessary stuff, like python 2.7 that we've manually installed
+sudo rm -rf \
+    $TEMPLATE_DIR  \
+    /var/cache/apt
+
+# Clean up files to reduce confusion during debug
+sudo rm -rf \
+    /etc/machine-id \
+    /etc/ssh/ssh_host* \
+    /root/.ssh/authorized_keys \
+    /home/ubuntu/.ssh/authorized_keys \
+    /var/log/auth.log \
+    /var/log/wtmp \
+    /var/lib/cloud/sem \
+    /var/lib/cloud/data \
+    /var/lib/cloud/instance \
+    /var/lib/cloud/instances \
+    /var/log/cloud-init.log \
+    /var/log/cloud-init-output.log
+
+sudo touch /etc/machine-id
