@@ -21,7 +21,6 @@ ExecStart=/usr/bin/kubelet \
   --kubeconfig=/var/lib/kubelet/kubeconfig \
   --feature-gates=RotateKubeletServerCertificate=true \
   --anonymous-auth=false \
-# https://github.com/kubernetes/kubeadm/issues/273
   --resolv-conf=/run/systemd/resolve/resolv.conf \
   --client-ca-file=/etc/kubernetes/pki/ca.crt $KUBELET_ARGS $KUBELET_MAX_PODS $KUBELET_EXTRA_ARGS
 
