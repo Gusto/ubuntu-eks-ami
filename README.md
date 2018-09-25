@@ -2,8 +2,8 @@
 
 This repository contains resources and configuration scripts for building a
 custom Amazon EKS AMI with [HashiCorp Packer](https://www.packer.io/) in ubuntu 18.04.
-This ist he same configuration that Amazon EKS uses to create the official Amazon
-EKS-optimized AMI (See https://github.com/awslabs/amazon-eks-ami).
+This repository is a port of the repository Amazon EKS uses to create the [official Amazon
+EKS-optimized AMI](https://github.com/awslabs/amazon-eks-ami)
 
 ## Setup
 
@@ -29,7 +29,7 @@ following command in the root of this repository:
 make
 ```
 
-The Makefile runs Packer with the `eks-worker-al2.json` build specification
+The Makefile runs Packer with the `eks-worker-ubuntu.json` build specification
 template and the [amazon-ebs](https://www.packer.io/docs/builders/amazon-ebs.html)
 builder. An instance is launched and the Packer [Shell
 Provisioner](https://www.packer.io/docs/provisioners/shell.html) runs the
@@ -41,9 +41,11 @@ and terminates the instance after the AMI is created.
 
 If you are just getting started with Amazon EKS, we recommend that you follow
 our [Getting Started](https://docs.aws.amazon.com/eks/latest/userguide/getting-started.html)
-chapter in the Amazon EKS User Guide. If you already have a cluster, and you
-want to launch a node group with your new AMI, see [Launching Amazon EKS Worker
-Nodes](https://docs.aws.amazon.com/eks/latest/userguide/launch-workers.html)
+chapter in the Amazon EKS User Guide. However, if you want to use the ubuntu AMI provided
+here, you will need to search for our specific AMI. 
+
+If you already have a cluster, and you want to launch a node group with your
+new AMI, see [Launching Amazon EKS Worker Nodes](https://docs.aws.amazon.com/eks/latest/userguide/launch-workers.html)
 in the Amazon EKS User Guide.
 
 The [`amazon-eks-nodegroup.yaml`](amazon-eks-nodegroup.yaml) AWS CloudFormation
@@ -51,7 +53,8 @@ template in this repository is provided to launch a node group with the new AMI
 ID that is returned when Packer finishes building. Note that there is important
 Amazon EC2 user data in this CloudFormation template that bootstraps the worker
 nodes when they are launched so that they can register with your Amazon EKS
-cluster. Your nodes cannot register properly without this user data.
+cluster. Your nodes cannot register properly without this user data.  For
+more information, please take a look at the `files/bootstrap.sh` script
 
 ### Compatibility with CloudFormation Template
 
@@ -59,13 +62,13 @@ The CloudFormation template for EKS Nodes is published in the S3 bucket
 `amazon-eks` under the path `cloudformation`. You can see a list of previous
 versions by running `aws s3 ls s3://amazon-eks/cloudformation/`.
 
-| CloudFormation Version | EKS AMI versions     |
-| ---------------------- | -------------------- |
-| 2018-08-21             | amazon-eks-node-v23+ |
-| 2018-08-30             | amazon-eks-node-v23+ |
+| CloudFormation Version | Ubuntu EKS AMI versions |
+| ---------------------- | ----------------------- |
+| 2018-08-21             | amazon-eks-node-v23+    |
+| 2018-08-30             | amazon-eks-node-v23+    |
 
-For older versions of the EKS AMI (v20-v22), you can find the CloudFormation
-templates in the same bucket under the path `s3://amazon-eks/1.10.3/2018-06-05/`.
+Since this porting was done initialy with the v23 of the amazon-eks-node,
+we do not support any prior versions of the cloudformation template
 
 ## License Summary
 
