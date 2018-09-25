@@ -5,7 +5,7 @@
     "creator": "{{env `USER`}}",
     "instance_type": "c5.large",
     "encrypted": "false",
-    "kms_key_id": ""
+    "kms_key_id": "",
     "vpc_id" : "",
     "subnet_id" : ""
   },
