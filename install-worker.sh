@@ -47,7 +47,7 @@ sudo apt-get install -y python3-pip
 
 sudo pip3 install --upgrade awscli
 
-# Install aws-cfn-bootstrap directly, instead of via yum
+# Install aws-cfn-bootstrap directly, instead of via apt
 sudo apt-get install -y python2.7
 sudo apt-get install -y python-pip
 sudo pip install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz

@@ -40,7 +40,7 @@ and terminates the instance after the AMI is created.
 ## Using the AMI
 
 If you are just getting started with Amazon EKS, we recommend that you follow
-our [Getting Started](https://docs.aws.amazon.com/eks/latest/userguide/getting-started.html)
+the [Getting Started](https://docs.aws.amazon.com/eks/latest/userguide/getting-started.html)
 chapter in the Amazon EKS User Guide. However, if you want to use the ubuntu AMI provided
 here, you will need to search for our specific AMI. 
 
