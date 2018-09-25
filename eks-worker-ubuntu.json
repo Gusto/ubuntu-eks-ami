@@ -6,14 +6,16 @@
     "instance_type": "c5.large",
     "encrypted": "false",
     "kms_key_id": ""
+    "vpc_id" : "",
+    "subnet_id" : ""
   },
 
   "builders": [
     {
       "type": "amazon-ebs",
       "region": "{{user `aws_region`}}",
-      "vpc_id": "***REMOVED***",
-      "subnet_id": "***REMOVED***",
+      "vpc_id": "{{user `vpc_id`}}",
+      "subnet_id": "{{user `subnet_id`}}",
       "source_ami_filter": {
         "filters": {
           "name": "ubuntu/images/*ubuntu-bionic-18.04-amd64-server-*",
