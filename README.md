@@ -86,5 +86,5 @@ versions by running `aws s3 ls s3://amazon-eks/cloudformation/`.
 | 2018-08-21             | amazon-eks-node-v23+    |
 | 2018-08-30             | amazon-eks-node-v23+    |
 
-Since this porting was done initialy with the v23 of the amazon-eks-node,
+Since this porting was done initially with the v23 of the amazon-eks-node,
 we do not support any prior versions of the cloudformation template
