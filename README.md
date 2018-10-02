@@ -43,6 +43,21 @@ If you are just getting started with Amazon EKS, we recommend that you follow
 the [Getting Started](https://docs.aws.amazon.com/eks/latest/userguide/getting-started.html)
 chapter in the Amazon EKS User Guide. However, if you want to use the ubuntu AMI provided
 here, you will need to search for our specific AMI. 
+An easy way to find it would be to use this [link](https://us-west-2.console.aws.amazon.com/ec2/v2/home?region=us-west-2#Images:visibility=public-images;ownerAlias=572074891743;sort=name)
+
+Alternatively, in terraform you could use the following `aws_ami` resource:
+
+```
+data "aws_ami" "eks-worker" {
+  filter {
+    name   = "name"
+    values = ["amazon-eks-ubuntu-18.04-node-*"]
+  }
+
+  most_recent = true
+  owners      = ["572074891743"]
+}
+```
 
 If you already have a cluster, and you want to launch a node group with your
 new AMI, see [Launching Amazon EKS Worker Nodes](https://docs.aws.amazon.com/eks/latest/userguide/launch-workers.html)
@@ -50,11 +65,15 @@ in the Amazon EKS User Guide.
 
 The [`amazon-eks-nodegroup.yaml`](amazon-eks-nodegroup.yaml) AWS CloudFormation
 template in this repository is provided to launch a node group with the new AMI
-ID that is returned when Packer finishes building. Note that there is important
-Amazon EC2 user data in this CloudFormation template that bootstraps the worker
-nodes when they are launched so that they can register with your Amazon EKS
-cluster. Your nodes cannot register properly without this user data.  For
-more information, please take a look at the `files/bootstrap.sh` script
+ID that is returned when Packer finishes building.  When using this template, you
+can simply choose to use the AMI (via the above search), rather than what is
+provided in the documentation. 
+
+Note that there is important Amazon EC2 user data in this CloudFormation template
+that bootstraps the worker nodes when they are launched so that they can
+register with your Amazon EKS cluster. Your nodes cannot register
+properly without this user data.  For more information, please take
+a look at the `files/bootstrap.sh` script
 
 ### Compatibility with CloudFormation Template
 
@@ -69,7 +88,3 @@ versions by running `aws s3 ls s3://amazon-eks/cloudformation/`.
 
 Since this porting was done initialy with the v23 of the amazon-eks-node,
 we do not support any prior versions of the cloudformation template
-
-## License Summary
-
-This sample code is made available under a modified MIT license. See the LICENSE file.
