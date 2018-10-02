@@ -1,0 +1,5 @@
+steps:
+  - label: ':ubuntu: Build ubuntu AMI'
+    command: 'docker run -it -v $(pwd)/install-worker.sh:/install-worker.sh -v $(pwd)/files:/files -v $(pwd)/eks-worker-ubuntu.json:/eks-worker-ubuntu.json -e VPC -e SUBNET hashicorp/packer build -var "vpc_id=$VPC" -var "subnet_id=$SUBNET" eks-worker-ubuntu.json'
+    agents:
+      queue: 'eks-ubuntu-packer'
