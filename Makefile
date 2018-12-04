@@ -4,6 +4,8 @@ DATE ?= $(shell date +%Y-%m-%d)
 
 AWS_DEFAULT_REGION = us-west-2
 
+.PHONY: all validate ami
+
 all: ami
 
 validate:

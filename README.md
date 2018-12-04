@@ -81,10 +81,10 @@ The CloudFormation template for EKS Nodes is published in the S3 bucket
 `amazon-eks` under the path `cloudformation`. You can see a list of previous
 versions by running `aws s3 ls s3://amazon-eks/cloudformation/`.
 
-| CloudFormation Version | Ubuntu EKS AMI versions |
-| ---------------------- | ----------------------- |
-| 2018-08-21             | amazon-eks-node-v23+    |
-| 2018-08-30             | amazon-eks-node-v23+    |
+| CloudFormation Version | EKS AMI version (equivalent) | Ubuntu EKS AMI versions                   | [amazon-vpc-cni-k8s](https://github.com/aws/amazon-vpc-cni-k8s/releases) |
+| ---------------------- | ---------------------------  | ----------------------------------------- | -------------------------------- |
+| 2018-08-30             | amazon-eks-node-v23+         | amazon-eks-ubuntu-18.04-node-1538521153   | v1.1.0                           |
+| 2018-11-07             | amazon-eks-node-v25+         | (not yet generated)                       | v1.2.1 (for t3 and r5 instances) |
 
 Since this porting was done initially with the v23 of the amazon-eks-node,
 we do not support any prior versions of the cloudformation template

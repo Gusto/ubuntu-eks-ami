@@ -69,7 +69,10 @@
     },
     {
       "type": "shell",
-      "script": "install-worker.sh"
+      "script": "install-worker.sh",
+      "environment_vars": [
+        "AMI_NAME={{user `ami_name`}}"
+      ]
     }
   ],
   "post-processors": [
