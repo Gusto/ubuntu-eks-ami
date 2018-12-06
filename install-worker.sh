@@ -20,6 +20,7 @@ sudo apt-get install -y \
     ntp \
     socat \
     unzip \
+    jq \
     nfs-kernel-server
 
 sudo systemctl restart ntp.service
@@ -59,7 +60,6 @@ sudo ln -s /root/aws-cfn-bootstrap-latest/init/ubuntu/cfn-hup /etc/init.d/cfn-hu
 ################################################################################
 
 # Enable forwarding via iptables
-sudo iptables -P FORWARD ACCEPT
 sudo bash -c "iptables-save > /etc/network/iptables"
 
 sudo mv $TEMPLATE_DIR/iptables-restore.service /etc/systemd/system/iptables-restore.service
@@ -83,6 +83,10 @@ sudo apt-get update -y
 sudo apt-get install -y docker-ce
 sudo usermod -aG docker $USER
 
+sudo mkdir -p /etc/docker
+sudo mv $TEMPLATE_DIR/docker-daemon.json /etc/docker/daemon.json
+sudo chown root:root /etc/docker/daemon.json
+
 # Enable docker daemon to start on boot.
 sudo systemctl daemon-reload
 sudo systemctl enable docker
@@ -94,6 +98,7 @@ sudo systemctl enable docker
 # kubelet uses journald which has built-in rotation and capped size.
 # See man 5 journald.conf
 sudo mv $TEMPLATE_DIR/logrotate-kube-proxy /etc/logrotate.d/kube-proxy
+sudo chown root:root /etc/logrotate.d/kube-proxy/
 sudo mkdir -p /var/log/journal
 
 ################################################################################
@@ -137,9 +142,14 @@ sudo mv aws-iam-authenticator /usr/bin/
 
 sudo rm *.sha256
 
-sudo mv $TEMPLATE_DIR/kubelet-kubeconfig /var/lib/kubelet/kubeconfig
-sudo mv $TEMPLATE_DIR/kubelet.service /etc/systemd/system/kubelet.service
+sudo mkdir -p /etc/kubernetes/kubelet
 sudo mkdir -p /etc/systemd/system/kubelet.service.d
+sudo mv $TEMPLATE_DIR/kubelet-kubeconfig /var/lib/kubelet/kubeconfig
+sudo chown root:root /var/lib/kubelet/kubeconfig
+sudo mv $TEMPLATE_DIR/kubelet.service /etc/systemd/system/kubelet.service
+sudo chown root:root /etc/systemd/system/kubelet.service
+sudo mv $TEMPLATE_DIR/kubelet-config.json /etc/kubernetes/kubelet/kubelet-config.json
+sudo chown root:root /etc/kubernetes/kubelet/kubelet-config.json
 
 sudo systemctl daemon-reload
 # Disable the kubelet until the proper dropins have been configured
@@ -153,6 +163,25 @@ sudo mkdir -p /etc/eks
 sudo mv $TEMPLATE_DIR/eni-max-pods.txt /etc/eks/eni-max-pods.txt
 sudo mv $TEMPLATE_DIR/bootstrap.sh /etc/eks/bootstrap.sh
 sudo chmod +x /etc/eks/bootstrap.sh
+
+################################################################################
+### AMI Metadata ###############################################################
+################################################################################
+
+BASE_AMI_ID=$(curl -s  http://169.254.169.254/latest/meta-data/ami-id)
+cat <<EOF > /tmp/release
+BASE_AMI_ID="$BASE_AMI_ID"
+BUILD_TIME="$(date)"
+BUILD_KERNEL="$(uname -r)"
+AMI_NAME="$AMI_NAME"
+ARCH="$(uname -m)"
+EOF
+sudo mv /tmp/release /etc/eks/release
+sudo chown root:root /etc/eks/*
+
+################################################################################
+### Cleanup ####################################################################
+################################################################################
 
 # Clean up apt caches to reduce the image size
 sudo apt-get clean
