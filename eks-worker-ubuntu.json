@@ -72,7 +72,7 @@
       "type": "shell",
       "script": "install-worker.sh",
       "environment_vars": [
-        "AMI_NAME={{user `ami_name`}}"
+        "AMI_NAME={{user `ami_name`}}",
         "KUBE_VERSION={{user `kube_version`}}"
       ]
     }
