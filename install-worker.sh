@@ -17,13 +17,21 @@ sudo apt-get update -y
 
 sudo apt-get install -y \
     conntrack \
-    ntp \
+    chrony \
     socat \
     unzip \
     jq \
     nfs-kernel-server
 
-sudo systemctl restart ntp.service
+# Make sure Amazon Time Sync Service starts on boot.
+update-rc.d chrony 80 20
+
+# Make sure that chronyd syncs RTC clock to the kernel.
+cat <<EOF | sudo tee -a /etc/chrony.conf
+# This directive enables kernel synchronisation (every 11 minutes) of the
+# real-time clock. Note that it can’t be used along with the 'rtcfile' directive.
+rtcsync
+EOF
 
 sudo apt-get install -y \
     build-essential \
@@ -130,7 +138,7 @@ sudo bash -c "cat <<EOF >/etc/apt/sources.list.d/kubernetes.list
 deb http://apt.kubernetes.io/ kubernetes-xenial main
 EOF"
 sudo apt-get update
-sudo apt-get install -y kubelet=1.10.7-00 kubectl=1.10.7-00
+sudo apt-get install -y kubelet=$KUBE_VERSION-00 kubectl=$KUBE_VERSION-00
 sudo apt-mark hold kubelet kubectl
 
 # Install aws-iam-authenticator
