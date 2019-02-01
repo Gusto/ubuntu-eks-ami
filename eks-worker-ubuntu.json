@@ -2,6 +2,7 @@
   "variables": {
     "aws_region": "us-west-2",
     "ami_name": "amazon-eks-ubuntu-18.04-node-{{timestamp}}",
+    "kube_version": "1.11.5",
     "creator": "{{env `USER`}}",
     "instance_type": "c5.large",
     "encrypted": "false",
@@ -71,7 +72,8 @@
       "type": "shell",
       "script": "install-worker.sh",
       "environment_vars": [
-        "AMI_NAME={{user `ami_name`}}"
+        "AMI_NAME={{user `ami_name`}}",
+        "KUBE_VERSION={{user `kube_version`}}"
       ]
     }
   ],

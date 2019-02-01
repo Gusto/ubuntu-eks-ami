@@ -2,6 +2,41 @@
 
 See: https://github.com/awslabs/amazon-eks-ami/blob/master/CHANGELOG.md for relevant commits
 
+### amazon-eks-node-1.11-v20190109 | amazon-eks-node-1.10-v20190109
+
+*  Make bootstrap script more readable
+*  Addresses #136 - set +e doesn't seem to work. Will return 0 or TEN_RANGE
+*  Use chrony for time and make sure it is enabled on startup. (#130)
+*  Only restart on failures
+*  Update kubelet.service to be resilient to crashing
+*  Reversing order to make easier to read
+*  Added 1.11 build in Makefile
+*  Fix rendering of the readme file
+*  Update changelog and readme for 1.10 and 1.11 v20181210 worker nodes
+
+### amazon-eks-node-1.11-v20181210 | amazon-eks-node-1.10-v20181210
+# bfcf6e7
+* Added GitHub issue templates
+* Simplified ASG Update parameters
+* Swap order of `sed` and `kubectl config`
+* Add back the allow-privileged kubelet flag
+* Added serverTLSBootstrap to kubelet config file
+* Added node ASG update policy parameters
+* Remove deprecated flags that use default values
+* Docker config should be owned by root
+* Adding mkdir command
+* Adding simple dockerd config file to rotate logs from containers
+* Gracefully handle unknown instance types
+* Added AMI metadata file
+* Reverted max-pod updates and instance types
+* Correctly select kube-DNS address for secondary CIDR VPC instances
+* Updated kubelet config file location
+* Updated instance types and eni counts
+* Modifying kubelet to use config files instead of kubelet flags which are about to deprecate. (#90)
+* Add max pods information for g3s.xlarge instances
+* kubelet config files should be owned by root
+* Update eni-max-pods.txt
+
 ### amazon-eks-node-v25
 * 45a12de Fix kube-proxy logrotate (#68)
 * 742df5e Change make targets to be .PHONY (#59)

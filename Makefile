@@ -4,12 +4,19 @@ DATE ?= $(shell date +%Y-%m-%d)
 
 AWS_DEFAULT_REGION = us-west-2
 
-.PHONY: all validate ami
+.PHONY: all validate ami 1.11 1.10
 
-all: ami
+all: 1.11
 
 validate:
 	packer validate eks-worker-ubuntu.json
 
-ami: validate
-	packer build eks-worker-ubuntu.json
+1.10: validate
+	packer build \
+      -var kube_version=1.10.11\
+      eks-worker-ubuntu.json
+
+1.11: validate
+	packer build \
+      -var kube_version=1.11.5\
+      eks-worker-ubuntu.json
