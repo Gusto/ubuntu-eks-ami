@@ -24,7 +24,7 @@ sudo apt-get install -y \
     nfs-kernel-server
 
 # Make sure Amazon Time Sync Service starts on boot.
-update-rc.d chrony 80 20
+update-rc.d chrony defaults 80 20
 
 # Make sure that chronyd syncs RTC clock to the kernel.
 cat <<EOF | sudo tee -a /etc/chrony.conf
