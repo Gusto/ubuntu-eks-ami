@@ -1,7 +1,8 @@
 {
   "variables": {
     "aws_region": "us-west-2",
-    "ami_name": "amazon-eks-ubuntu-18.04-node-{{timestamp}}",
+    "ami_prefix": "amazon-eks-ubuntu-18.04-node",
+    "ami_name": "{{user `ami_prefix`}}-{{timestamp}}",
     "kube_version": "1.11.5",
     "creator": "{{env `USER`}}",
     "instance_type": "c5.large",

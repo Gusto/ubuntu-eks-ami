@@ -3,3 +3,18 @@ steps:
     command: 'docker run -it -v $(pwd)/install-worker.sh:/install-worker.sh -v $(pwd)/files:/files -v $(pwd)/eks-worker-ubuntu.json:/eks-worker-ubuntu.json -e VPC -e SUBNET hashicorp/packer build -var "vpc_id=$VPC" -var "subnet_id=$SUBNET" eks-worker-ubuntu.json'
     agents:
       queue: 'eks-ubuntu-packer'
+  - label: ':ubuntu: Publish ubuntu AMI 1.10'
+    command: 'docker run -it -v $(pwd)/install-worker.sh:/install-worker.sh -v $(pwd)/files:/files -v $(pwd)/eks-worker-ubuntu.json:/eks-worker-ubuntu.json -e VPC -e SUBNET hashicorp/packer build -var "vpc_id=$VPC" -var "subnet_id=$SUBNET" -var "ami_prefix=ubuntu-EKS-1.10" eks-worker-ubuntu.json'
+    agents:
+      queue: 'eks-ubuntu-packer'
+    branches: 'master'
+  - label: ':ubuntu: Publish ubuntu AMI 1.11'
+    command: 'docker run -it -v $(pwd)/install-worker.sh:/install-worker.sh -v $(pwd)/files:/files -v $(pwd)/eks-worker-ubuntu.json:/eks-worker-ubuntu.json -e VPC -e SUBNET hashicorp/packer build -var "vpc_id=$VPC" -var "subnet_id=$SUBNET" -var "ami_prefix=ubuntu-EKS-1.10" eks-worker-ubuntu.json'
+    agents:
+      queue: 'eks-ubuntu-packer'
+    branches: 'master'
+  - label: ':ubuntu: Publish ubuntu AMI latest'
+    command: 'docker run -it -v $(pwd)/install-worker.sh:/install-worker.sh -v $(pwd)/files:/files -v $(pwd)/eks-worker-ubuntu.json:/eks-worker-ubuntu.json -e VPC -e SUBNET hashicorp/packer build -var "vpc_id=$VPC" -var "subnet_id=$SUBNET" -var "ami_prefix=ubuntu-EKS-1.10" eks-worker-ubuntu.json'
+    agents:
+      queue: 'eks-ubuntu-packer'
+    branches: 'master'
