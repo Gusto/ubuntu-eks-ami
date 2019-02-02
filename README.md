@@ -37,13 +37,20 @@ Provisioner](https://www.packer.io/docs/provisioners/shell.html) runs the
 necessary configuration tasks.  Then, Packer creates an AMI from the instance
 and terminates the instance after the AMI is created.
 
+## AMI versions
+
+We currently publish 3 versions of the AMI:
+ - 1.10
+ - 1.11
+ - latest
+
 ## Using the AMI
 
 If you are just getting started with Amazon EKS, we recommend that you follow
 the [Getting Started](https://docs.aws.amazon.com/eks/latest/userguide/getting-started.html)
 chapter in the Amazon EKS User Guide. However, if you want to use the ubuntu AMI provided
 here, you will need to search for our specific AMI. 
-An easy way to find it would be to use this [link](https://us-west-2.console.aws.amazon.com/ec2/v2/home?region=us-west-2#Images:visibility=public-images;ownerAlias=572074891743;sort=name)
+An easy way to find it would be to use this [link](https://us-west-2.console.aws.amazon.com/ec2/v2/home?region=us-west-2#Images:visibility=public-images;ownerAlias=572074891743;name=ubuntu-EKS-latest-*;sort=desc:name)
 
 Alternatively, in terraform you could use the following `aws_ami` resource:
 
@@ -51,7 +58,7 @@ Alternatively, in terraform you could use the following `aws_ami` resource:
 data "aws_ami" "eks-worker" {
   filter {
     name   = "name"
-    values = ["amazon-eks-ubuntu-18.04-node-*"]
+    values = ["ubuntu-EKS-latest-*"]
   }
 
   most_recent = true
@@ -81,10 +88,11 @@ The CloudFormation template for EKS Nodes is published in the S3 bucket
 `amazon-eks` under the path `cloudformation`. You can see a list of previous
 versions by running `aws s3 ls s3://amazon-eks/cloudformation/`.
 
-| CloudFormation Version | EKS AMI version (equivalent) | Ubuntu EKS AMI versions                   | [amazon-vpc-cni-k8s](https://github.com/aws/amazon-vpc-cni-k8s/releases) |
-| ---------------------- | ---------------------------  | ----------------------------------------- | -------------------------------- |
-| 2018-08-30             | amazon-eks-node-v23+         | amazon-eks-ubuntu-18.04-node-1538521153   | v1.1.0                           |
-| 2018-11-07             | amazon-eks-node-v25+         | (not yet generated)                       | v1.2.1 (for t3 and r5 instances) |
+| CloudFormation Version | EKS AMI version (equivalent)          | Ubuntu EKS AMI versions                               | [amazon-vpc-cni-k8s](https://github.com/aws/amazon-vpc-cni-k8s/releases) |
+| ---------------------- | ------------------------------------  | ----------------------------------------------------- | -------------------------------- |
+| 2018-12-10             | amazon-eks-node-(1.11,1.10)-v20181210 | ubuntu-EKS-1.11-1549066345,ubuntu-EKS-1.10-1549065992 | v1.2.1                           |
+| 2018-11-07             | amazon-eks-node-v25+                  | amazon-eks-ubuntu-18.04-node-1547856316               | v1.2.1 (for t3 and r5 instances) |
+| 2018-08-30             | amazon-eks-node-v23+                  | amazon-eks-ubuntu-18.04-node-1538521153               | v1.1.0                           |
 
 Since this porting was done initially with the v23 of the amazon-eks-node,
 we do not support any prior versions of the cloudformation template
