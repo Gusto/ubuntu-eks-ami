@@ -4,6 +4,8 @@ This repository contains resources and configuration scripts for building a
 custom Amazon EKS AMI with [HashiCorp Packer](https://www.packer.io/) in ubuntu 18.04.
 This repository is a port of the repository Amazon EKS uses to create the [official Amazon
 EKS-optimized AMI](https://github.com/awslabs/amazon-eks-ami)
+We will try to update this repository periodically with any new commits that are added
+to the official Amazon EKS-optimized AMI.
 
 ## Setup
 
