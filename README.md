@@ -65,6 +65,28 @@ data "aws_ami" "eks-worker" {
   owners      = ["572074891743"]
 }
 ```
+```
+data "aws_ami" "eks-worker" {
+  filter {
+    name   = "name"
+    values = ["ubuntu-EKS-1.11-*"]
+  }
+
+  most_recent = true
+  owners      = ["572074891743"]
+}
+```
+```
+data "aws_ami" "eks-worker" {
+  filter {
+    name   = "name"
+    values = ["ubuntu-EKS-1.10-*"]
+  }
+
+  most_recent = true
+  owners      = ["572074891743"]
+}
+```
 
 If you already have a cluster, and you want to launch a node group with your
 new AMI, see [Launching Amazon EKS Worker Nodes](https://docs.aws.amazon.com/eks/latest/userguide/launch-workers.html)
