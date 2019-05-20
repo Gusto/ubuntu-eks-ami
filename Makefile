@@ -12,12 +12,19 @@ AWS_BINARY ?= aws
 ifeq ($(ARCH), arm64)
 INSTANCE_TYPE ?= a1.large
 else
-INSTANCE_TYPE ?= m4.large
+INSTANCE_TYPE ?= c5.large
 endif
 
 DATE ?= $(shell date +%Y-%m-%d)
 
 AWS_DEFAULT_REGION ?= us-west-2
+ifndef VPC_ID
+$(error VPC_ID is not set)
+endif
+ifndef SUBNET_ID
+$(error SUBNET_ID is not set)
+endif
+
 
 T_RED := \e[0;31m
 T_GREEN := \e[0;32m
@@ -36,10 +43,11 @@ validate:
 
 .PHONY: k8s
 k8s: validate
-    @echo "$(T_GREEN)Building AMI for version $(T_YELLOW)$(VERSION)$(T_GREEN) on $(T_YELLOW)$(ARCH)$(T_RESET)"
 #   @sinneduy: I am making a call to not include this - I don't believe this is necessary since you can specify the architecture inside eks-worker-ubuntu.json 
 #   See (https://github.com/awslabs/amazon-eks-ami/pull/250/files) for original Pull Request
 #   https://github.com/awslabs/amazon-eks-ami/pull/250/files#r285781524
+
+#    @echo "$(T_GREEN)Building AMI for version $(T_YELLOW)$(VERSION)$(T_GREEN) on $(T_YELLOW)$(ARCH)$(T_RESET)"
 #   $(eval SOURCE_AMI_ID := $(shell $(AWS_BINARY) ec2 describe-images \
 #     --output text \
 #     --filters \
@@ -58,17 +66,18 @@ k8s: validate
 		-var instance_type=$(INSTANCE_TYPE) \
 		-var kubernetes_version=$(VERSION) \
 		-var kubernetes_build_date=$(KUBERNETES_BUILD_DATE) \
-		-var source_ami_id=$(SOURCE_AMI_ID) \
 		-var arch=$(ARCH) \
 		-var binary_bucket_name=$(BINARY_BUCKET_NAME) \
 		-var cni_version=$(CNI_VERSION) \
 		-var cni_plugin_version=$(CNI_PLUGIN_VERSION) \
 		-var docker_version=$(DOCKER_VERSION) \
+		-var vpc_id=$(VPC_ID) \
+		-var subnet_id=$(SUBNET_ID) \
 		eks-worker-ubuntu.json
 
 .PHONY: 1.10
 1.10: validate
-	$(MAKE) VERSION=1.10.13-01-eks k8s
+	$(MAKE) VERSION=1.10.13 k8s
 
 .PHONY: 1.11
 1.11: validate

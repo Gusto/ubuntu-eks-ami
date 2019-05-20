@@ -53,7 +53,7 @@ sudo apt-get update -y
 
 sudo apt-get install -y \
     conntrack \
-    aws-cli \
+    awscli \
     chrony \
     socat \
     unzip \
@@ -175,7 +175,7 @@ sudo bash -c "cat <<EOF >/etc/apt/sources.list.d/kubernetes.list
 deb http://apt.kubernetes.io/ kubernetes-xenial main
 EOF"
 sudo apt-get update
-sudo apt-get install -y kubelet=$KUBE_VERSION-00 kubectl=$KUBE_VERSION-00
+sudo apt-get install -y kubelet=$KUBERNETES_VERSION-00 kubectl=$KUBERNETES_VERSION-00
 sudo apt-mark hold kubelet kubectl
 
 # Install aws-iam-authenticator

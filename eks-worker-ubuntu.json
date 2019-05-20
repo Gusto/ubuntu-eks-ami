@@ -44,7 +44,7 @@
           "state": "available",
           "virtualization-type": "hvm"
         },
-        "owners": [ "{{user `source_ami_owners}}" ],
+        "owners": [ "{{user `source_ami_owners`}}" ],
         "most_recent": true
       },
       "instance_type": "{{user `instance_type`}}",
@@ -99,7 +99,7 @@
         "BINARY_BUCKET_REGION={{user `binary_bucket_region`}}",
         "DOCKER_VERSION={{user `docker_version`}}",
         "CNI_VERSION={{user `cni_version`}}",
-        "CNI_PLUGIN_VERSION={{user `cni_plugin_version`}}",
+        "CNI_PLUGIN_VERSION={{user `cni_plugin_version`}}"
       ]
     }
   ],
