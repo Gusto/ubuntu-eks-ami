@@ -174,7 +174,16 @@ curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add
 sudo bash -c "cat <<EOF >/etc/apt/sources.list.d/kubernetes.list
 deb http://apt.kubernetes.io/ kubernetes-xenial main
 EOF"
-sudo apt-get update
+
+sudo apt-get update -y
+
+# This hack is necessary for:
+# https://github.com/kubernetes/kubernetes/issues/69489
+# EKS in Amazon Linux 2 bypasses this because it installs kubelet by downloading a binary
+if [ ${KUBERNETES_VERSION:0:4} == "1.10" ]; then
+  sudo apt-get install kubernetes-cni=0.6.0-00
+fi
+
 sudo apt-get install -y kubelet=$KUBERNETES_VERSION-00 kubectl=$KUBERNETES_VERSION-00
 sudo apt-mark hold kubelet kubectl
 
@@ -191,8 +200,9 @@ BINARIES=(
     aws-iam-authenticator
 )
 for binary in ${BINARIES[*]} ; do
-    # It should be noted that we diverge here in not expected access keys, but checking for the existence of the aws-cli
-    if [[ ! -z "$AWS_ACCESS_KEY_ID" ]]; then
+    # It should be noted that we diverge here:
+    # Instead of checking for expected access keys, we just use wget instead
+    if false; then #type "aws" > /dev/null; then
         echo "AWS cli present - using it to copy binaries from s3."
         aws s3 cp --region $BINARY_BUCKET_REGION $S3_PATH/$binary .
         aws s3 cp --region $BINARY_BUCKET_REGION $S3_PATH/$binary.sha256 .
@@ -278,7 +288,7 @@ sudo rm -rf \
     /var/lib/dhclient/* \
     /var/lib/dhcp/dhclient.* \
     /var/lib/apt/history \
-    /var/log/cloud-init-output.log
+    /var/log/cloud-init-output.log \
     /var/log/cloud-init.log \
     /var/log/auth.log \
     /var/log/wtmp

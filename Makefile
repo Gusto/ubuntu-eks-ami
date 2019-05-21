@@ -25,7 +25,6 @@ ifndef SUBNET_ID
 $(error SUBNET_ID is not set)
 endif
 
-
 T_RED := \e[0;31m
 T_GREEN := \e[0;32m
 T_YELLOW := \e[0;33m
@@ -73,6 +72,7 @@ k8s: validate
 		-var docker_version=$(DOCKER_VERSION) \
 		-var vpc_id=$(VPC_ID) \
 		-var subnet_id=$(SUBNET_ID) \
+		-var ami_name=ubuntu-EKS-$(VERSION) \
 		eks-worker-ubuntu.json
 
 .PHONY: 1.10
