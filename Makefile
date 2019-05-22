@@ -5,9 +5,22 @@ CNI_PLUGIN_VERSION ?= v0.7.5
 ARCH ?= x86_64
 BINARY_BUCKET_NAME ?= amazon-eks
 SOURCE_AMI_OWNERS ?= 137112412989
+PUBLISH ?= false
+DATE ?= $(shell date +%Y-%m-%d)
 
 PACKER_BINARY ?= packer
 AWS_BINARY ?= aws
+
+ifeq ($(PUBLISH), true)
+AMI_GROUPS ?= all
+AMI_NAME ?= ubuntu-EKS-$(VERSION)
+else
+AMI_NAME ?= amazon-eks-ubuntu-18.04-node-$(DATE) 
+endif
+
+ifeq ($(VERSION), latest)
+override VERSION := 1.12.7
+endif
 
 ifeq ($(ARCH), arm64)
 INSTANCE_TYPE ?= a1.large
@@ -15,7 +28,6 @@ else
 INSTANCE_TYPE ?= c5.large
 endif
 
-DATE ?= $(shell date +%Y-%m-%d)
 
 AWS_DEFAULT_REGION ?= us-west-2
 ifndef VPC_ID
@@ -31,10 +43,9 @@ T_YELLOW := \e[0;33m
 T_RESET := \e[0m
 
 .PHONY: all
-all: 1.10 1.11 1.12
+all: 1.10 1.11 1.12 latest
 
 .PHONY: validate
-
 validate:
 	$(PACKER_BINARY) validate \
 		-var instance_type=$(INSTANCE_TYPE) \
@@ -62,7 +73,7 @@ k8s: validate
 #   	exit 1; \
 #   fi
 	$(PACKER_BINARY) build \
-		-var instance_type=$(INSTANCE_TYPE) \
+        -var instance_type=$(INSTANCE_TYPE) \
 		-var kubernetes_version=$(VERSION) \
 		-var kubernetes_build_date=$(KUBERNETES_BUILD_DATE) \
 		-var arch=$(ARCH) \
@@ -72,7 +83,8 @@ k8s: validate
 		-var docker_version=$(DOCKER_VERSION) \
 		-var vpc_id=$(VPC_ID) \
 		-var subnet_id=$(SUBNET_ID) \
-		-var ami_name=ubuntu-EKS-$(VERSION) \
+		-var ami_groups=$(AMI_GROUPS) \
+		-var ami_name=$(AMI_NAME) \
 		eks-worker-ubuntu.json
 
 .PHONY: 1.10
@@ -86,3 +98,23 @@ k8s: validate
 .PHONY: 1.12
 1.12: validate
 	$(MAKE) VERSION=1.12.7 k8s
+
+.PHONY: latest
+latest: validate
+	$(MAKE) VERSION=latest k8s
+
+.PHONY: publish
+publish: validate
+	$(MAKE) PUBLISH=true all
+
+.PHONY: publish-1.10
+publish-1.10: validate
+	$(MAKE) PUBLISH=true 1.10
+
+.PHONY: publish-1.11
+publish-1.11: validate
+	$(MAKE) PUBLISH=true 1.11
+
+.PHONY: publish-1.12
+publish-1.12: validate
+	$(MAKE) PUBLISH=true 1.12

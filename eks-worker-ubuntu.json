@@ -3,6 +3,7 @@
     "aws_region": "us-west-2",
     "ami_prefix": "",
     "ami_name": "amazon-eks-ubuntu-18.04-node",
+    "ami_groups": "",
     "binary_bucket_region": "us-west-2",
     "creator": "{{env `USER`}}",
     "source_ami_owners": "099720109477",
@@ -35,7 +36,7 @@
       "access_key": "{{user `aws_access_key`}}",
       "secret_key": "{{user `aws_secret_key`}}",
       "token": "{{user `aws_token`}}",
-      "ami_groups": "all",
+      "ami_groups": ["{{user `ami_groups`}}"],
       "source_ami_filter": {
         "filters": {
           "architecture": "{{user `arch`}}",
