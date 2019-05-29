@@ -30,7 +30,7 @@ steps:
       automatic:
         - limit: 3
           exit_status: "*"
-  - label: ':ubuntu: Test EKS ubuntu AMI 1.12'
+  - label: ':ubuntu: Test EKS ubuntu AMI latest'
     command: 'docker build . -t gusto/packer && docker run -v $(pwd):/packer -e VPC_ID -e SUBNET_ID gusto/packer make latest'
     agents:
       queue: 'eks-ubuntu-packer'
