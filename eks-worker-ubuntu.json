@@ -80,7 +80,7 @@
           "cni_version": "{{ user `cni_version`}}",
           "cni_plugin_version": "{{ user `cni_plugin_version`}}"
       },
-      "ami_name": "{{user `ami_name`}}-{{timestamp}}",
+      "ami_name": "{{user `ami_name`}}",
       "ami_description": "EKS Kubernetes Worker AMI with Ubuntu 18.04 image"
     }
   ],
