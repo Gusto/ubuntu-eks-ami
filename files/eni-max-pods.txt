@@ -5,6 +5,17 @@
 # # of ENI * (# of IPv4 per ENI - 1)  + 2
 #
 # https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-eni.html#AvailableIpPerENI
+#
+# If f1.16xlarge, g3.16xlarge, h1.16xlarge, i3.16xlarge, and r4.16xlarge
+# instances use more than 31 IPv4 or IPv6 addresses per interface, they cannot
+# access the instance metadata, VPC DNS, and Time Sync services from the 32nd IP
+# address onwards. If access to these services is needed from all IP addresses
+# on the interface, we recommend using a maximum of 31 IP addresses per interface.
+a1.medium 8
+a1.large 29
+a1.xlarge 58
+a1.2xlarge 58
+a1.4xlarge 234
 c1.medium 12
 c1.xlarge 58
 c3.large 29
@@ -37,17 +48,17 @@ d2.4xlarge 234
 d2.8xlarge 234
 f1.2xlarge 58
 f1.4xlarge 234
-f1.16xlarge 394
+f1.16xlarge 242
 g2.2xlarge 58
 g2.8xlarge 234
 g3s.xlarge 58
 g3.4xlarge 234
 g3.8xlarge 234
-g3.16xlarge 737
+g3.16xlarge 452
 h1.2xlarge 58
 h1.4xlarge 234
 h1.8xlarge 234
-h1.16xlarge 737
+h1.16xlarge 452
 hs1.8xlarge 234
 i2.xlarge 58
 i2.2xlarge 58
@@ -58,7 +69,7 @@ i3.xlarge 58
 i3.2xlarge 58
 i3.4xlarge 234
 i3.8xlarge 234
-i3.16xlarge 737
+i3.16xlarge 452
 i3.metal 737
 m1.small 8
 m1.medium 12
@@ -101,6 +112,7 @@ p2.16xlarge 234
 p3.2xlarge 58
 p3.8xlarge 234
 p3.16xlarge 234
+p3dn.24xlarge 737
 r3.large 29
 r3.xlarge 58
 r3.2xlarge 58
@@ -111,7 +123,7 @@ r4.xlarge 58
 r4.2xlarge 58
 r4.4xlarge 234
 r4.8xlarge 234
-r4.16xlarge 737
+r4.16xlarge 452
 r5.large 29
 r5.xlarge 58
 r5.2xlarge 58
@@ -133,7 +145,7 @@ r5d.24xlarge 737
 t1.micro 4
 t2.nano 4
 t2.micro 4
-t2.small 8
+t2.small 11
 t2.medium 17
 t2.large 35
 t2.xlarge 44
@@ -143,8 +155,8 @@ t3.micro 4
 t3.small 8
 t3.medium 17
 t3.large 35
-t3.xlarge 44
-t3.2xlarge 44
+t3.xlarge 58
+t3.2xlarge 58
 x1.16xlarge 234
 x1.32xlarge 234
 x1e.xlarge 29
