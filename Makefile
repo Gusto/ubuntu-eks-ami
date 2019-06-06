@@ -7,6 +7,7 @@ BINARY_BUCKET_NAME ?= amazon-eks
 SOURCE_AMI_OWNERS ?= 137112412989
 PUBLISH ?= false
 DATE ?= $(shell date +%Y-%m-%d)
+TIME ?= $(shell date +%s)
 
 PACKER_BINARY ?= packer
 AWS_BINARY ?= aws
@@ -15,7 +16,7 @@ ifeq ($(PUBLISH), true)
 override AMI_GROUPS := all
 AMI_NAME ?= ubuntu-EKS-$(VERSION)
 else
-AMI_NAME ?= amazon-eks-ubuntu-1804-node-$(DATE) 
+AMI_NAME ?= amazon-eks-ubuntu-1804-node-$(VERSION)-$(TIME)
 endif
 
 ifeq ($(VERSION), latest)

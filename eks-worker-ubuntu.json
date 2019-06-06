@@ -8,7 +8,6 @@
     "creator": "{{env `USER`}}",
     "source_ami_owners": "099720109477",
     "source_ami_filter_name": "ubuntu/images/hvm-ssd/ubuntu-bionic-18.04-*",
-    "encrypted": "false",
 
     "arch": "",
     "instance_type": "c5.large",
@@ -67,7 +66,6 @@
       ],
       "ssh_username": "ubuntu",
       "ssh_pty": true,
-      "encrypt_boot": "{{user `encrypted`}}",
       "kms_key_id": "{{user `kms_key_id`}}",
       "run_tags": {
           "creator": "{{user `creator`}}"
