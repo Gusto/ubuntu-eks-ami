@@ -127,7 +127,7 @@ mkdir -p $CA_CERTIFICATE_DIRECTORY
 if [[ -z "${B64_CLUSTER_CA}" ]] && [[ -z "${APISERVER_ENDPOINT}" ]]; then
     DESCRIBE_CLUSTER_RESULT="/tmp/describe_cluster_result.txt"
    rc=0
-    # Retry the DescribleCluster API for API_RETRY_ATTEMPTS
+    # Retry the DescribeCluster API for API_RETRY_ATTEMPTS
     for attempt in `seq 0 $API_RETRY_ATTEMPTS`; do
         if [[ $attempt -gt 0 ]]; then
             echo "Attempt $attempt of $API_RETRY_ATTEMPTS"
