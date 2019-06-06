@@ -41,7 +41,7 @@ and terminates the instance after the AMI is created.
 
 ## AMI versions
 
-We currently publish 3 versions of the AMI:
+We currently publish 4 versions of the AMI:
  - 1.10
  - 1.11
  - 1.12
