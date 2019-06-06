@@ -15,7 +15,7 @@ ifeq ($(PUBLISH), true)
 override AMI_GROUPS := all
 AMI_NAME ?= ubuntu-EKS-$(VERSION)
 else
-AMI_NAME ?= amazon-eks-ubuntu-18.04-node-$(DATE) 
+AMI_NAME ?= amazon-eks-ubuntu-1804-node-$(DATE) 
 endif
 
 ifeq ($(VERSION), latest)
