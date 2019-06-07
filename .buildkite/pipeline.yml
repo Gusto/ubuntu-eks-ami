@@ -67,7 +67,7 @@ steps:
       automatic:
         - limit: 3
           exit_status: "*"
-  - label: ':ubuntu: Publish ubuntu AMI 1.12'
+  - label: ':ubuntu: Publish ubuntu AMI latest'
     command: 'docker build . -t gusto/packer && docker run -v $(pwd):/packer -e VPC_ID -e SUBNET_ID gusto/packer make publish-latest'
     agents:
       queue: 'eks-ubuntu-packer'
