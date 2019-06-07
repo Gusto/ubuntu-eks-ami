@@ -14,7 +14,7 @@ AWS_BINARY ?= aws
 
 ifeq ($(PUBLISH), true)
 override AMI_GROUPS := all
-AMI_NAME ?= ubuntu-EKS-$(VERSION)
+AMI_NAME ?= ubuntu-EKS-$(VERSION)-$(DATE)
 else
 AMI_NAME ?= amazon-eks-ubuntu-1804-node-$(VERSION)-$(TIME)
 endif
