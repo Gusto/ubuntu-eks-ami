@@ -53,6 +53,8 @@ sudo apt-get update -y
 
 sudo apt-get install -y \
     conntrack \
+# It should be noted that this installs awscli 1.14, which does not contain EKS.
+# We install the latest version of the awscli further down, after pip3 has been installed
     awscli \
     chrony \
     socat \
@@ -90,6 +92,9 @@ sudo apt-get install -y \
     software-properties-common
 
 sudo apt-get install -y python3-pip
+
+# Ubuntu's package repositories don't use a version of awscli that has eks
+pip3 install awscli --upgrade
 
 # Install aws-cfn-bootstrap directly, instead of via apt
 sudo apt-get install -y python2.7
