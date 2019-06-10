@@ -51,10 +51,10 @@ fi
 # Update the OS to begin with to catch up to the latest packages.
 sudo apt-get update -y
 
-sudo apt-get install -y \
-    conntrack \
 # It should be noted that this installs awscli 1.14, which does not contain EKS.
 # We install the latest version of the awscli further down, after pip3 has been installed
+sudo apt-get install -y \
+    conntrack \
     awscli \
     chrony \
     socat \
