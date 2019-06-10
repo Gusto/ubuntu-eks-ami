@@ -121,5 +121,5 @@ publish-1.12: validate
 	$(MAKE) PUBLISH=true 1.12
 
 .PHONY: publish-latest
-publish-1.12: validate
+publish-latest: validate
 	$(MAKE) PUBLISH=true latest
