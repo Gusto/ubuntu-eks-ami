@@ -55,7 +55,6 @@ sudo apt-get update -y
 # We install the latest version of the awscli further down, after pip3 has been installed
 sudo apt-get install -y \
     conntrack \
-    awscli \
     chrony \
     socat \
     unzip \
