@@ -93,7 +93,7 @@ sudo apt-get install -y \
 sudo apt-get install -y python3-pip
 
 # Ubuntu's package repositories don't use a version of awscli that has eks
-pip3 install awscli --upgrade
+sudo pip3 install awscli
 
 # Install aws-cfn-bootstrap directly, instead of via apt
 sudo apt-get install -y python2.7
