@@ -1,10 +1,10 @@
 steps:
   - label: 'validate packer template'
-    command: 'docker build . -t gusto/packer && docker run -v $(pwd):/packer -e VPC_ID -e SUBNET_ID gusto/packer make validate'
+    command: 'docker build . -t gusto/packer && docker run -v $(pwd):/packer -e vpc_id -e subnet_id gusto/packer make validate'
     agents:
       queue: 'eks-ubuntu-packer'
   - label: ':ubuntu: Test EKS ubuntu AMI for 1.10'
-    command: 'docker build . -t gusto/packer && docker run -v $(pwd):/packer -e VPC_ID -e SUBNET_ID gusto/packer make 1.10'
+    command: 'docker build . -t gusto/packer && docker run -v $(pwd):/packer -e vpc_id -e subnet_id gusto/packer make 1.10'
     agents:
       queue: 'eks-ubuntu-packer'
     branches: '!master'
@@ -13,7 +13,7 @@ steps:
         - limit: 3
           exit_status: "*"
   - label: ':ubuntu: Test EKS ubuntu AMI 1.11'
-    command: 'docker build . -t gusto/packer && docker run -v $(pwd):/packer -e VPC_ID -e SUBNET_ID gusto/packer make 1.11'
+    command: 'docker build . -t gusto/packer && docker run -v $(pwd):/packer -e vpc_id -e subnet_id gusto/packer make 1.11'
     agents:
       queue: 'eks-ubuntu-packer'
     branches: '!master'
@@ -22,7 +22,7 @@ steps:
         - limit: 3
           exit_status: "*"
   - label: ':ubuntu: Test EKS ubuntu AMI 1.12'
-    command: 'docker build . -t gusto/packer && docker run -v $(pwd):/packer -e VPC_ID -e SUBNET_ID gusto/packer make 1.12'
+    command: 'docker build . -t gusto/packer && docker run -v $(pwd):/packer -e vpc_id -e subnet_id gusto/packer make 1.12'
     agents:
       queue: 'eks-ubuntu-packer'
     branches: '!master'
@@ -31,7 +31,7 @@ steps:
         - limit: 3
           exit_status: "*"
   - label: ':ubuntu: Test EKS ubuntu AMI latest'
-    command: 'docker build . -t gusto/packer && docker run -v $(pwd):/packer -e VPC_ID -e SUBNET_ID gusto/packer make latest'
+    command: 'docker build . -t gusto/packer && docker run -v $(pwd):/packer -e vpc_id -e subnet_id gusto/packer make latest'
     agents:
       queue: 'eks-ubuntu-packer'
     branches: '!master'
@@ -41,7 +41,7 @@ steps:
           exit_status: "*"
 
   - label: ':ubuntu: Publish ubuntu AMI 1.10'
-    command: 'docker build . -t gusto/packer && docker run -v $(pwd):/packer -e VPC_ID -e SUBNET_ID gusto/packer make publish-1.10'
+    command: 'docker build . -t gusto/packer && docker run -v $(pwd):/packer -e vpc_id -e subnet_id gusto/packer make publish-1.10'
     agents:
       queue: 'eks-ubuntu-packer'
     branches: 'master'
@@ -50,7 +50,7 @@ steps:
         - limit: 3
           exit_status: "*"
   - label: ':ubuntu: Publish ubuntu AMI 1.11'
-    command: 'docker build . -t gusto/packer && docker run -v $(pwd):/packer -e VPC_ID -e SUBNET_ID gusto/packer make publish-1.11'
+    command: 'docker build . -t gusto/packer && docker run -v $(pwd):/packer -e vpc_id -e subnet_id gusto/packer make publish-1.11'
     agents:
       queue: 'eks-ubuntu-packer'
     branches: 'master'
@@ -59,7 +59,7 @@ steps:
         - limit: 3
           exit_status: "*"
   - label: ':ubuntu: Publish ubuntu AMI 1.12'
-    command: 'docker build . -t gusto/packer && docker run -v $(pwd):/packer -e VPC_ID -e SUBNET_ID gusto/packer make publish-1.12'
+    command: 'docker build . -t gusto/packer && docker run -v $(pwd):/packer -e vpc_id -e subnet_id gusto/packer make publish-1.12'
     agents:
       queue: 'eks-ubuntu-packer'
     branches: 'master'
@@ -68,7 +68,7 @@ steps:
         - limit: 3
           exit_status: "*"
   - label: ':ubuntu: Publish ubuntu AMI latest'
-    command: 'docker build . -t gusto/packer && docker run -v $(pwd):/packer -e VPC_ID -e SUBNET_ID gusto/packer make publish-latest'
+    command: 'docker build . -t gusto/packer && docker run -v $(pwd):/packer -e vpc_id -e subnet_id gusto/packer make publish-latest'
     agents:
       queue: 'eks-ubuntu-packer'
     branches: 'master'
