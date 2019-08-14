@@ -98,8 +98,17 @@ KUBELET_EXTRA_ARGS="${KUBELET_EXTRA_ARGS:-}"
 ENABLE_DOCKER_BRIDGE="${ENABLE_DOCKER_BRIDGE:-false}"
 API_RETRY_ATTEMPTS="${API_RETRY_ATTEMPTS:-3}"
 DOCKER_CONFIG_JSON="${DOCKER_CONFIG_JSON:-}"
-PAUSE_CONTAINER_ACCOUNT="${PAUSE_CONTAINER_ACCOUNT:-602401143452}"
 PAUSE_CONTAINER_VERSION="${PAUSE_CONTAINER_VERSION:-3.1}"
+
+function get_pause_container_account_for_region () {
+    local region="$1"
+    case "${region}" in
+    ap-east-1)
+        echo "${PAUSE_CONTAINER_ACCOUNT:-800184023465}";;
+    *)
+        echo "${PAUSE_CONTAINER_ACCOUNT:-602401143452}";;
+    esac
+}
 
 if [ -z "$CLUSTER_NAME" ]; then
     echo "CLUSTER_NAME is not defined"
@@ -132,6 +141,11 @@ if [[ -z "${B64_CLUSTER_CA}" ]] && [[ -z "${APISERVER_ENDPOINT}" ]]; then
         if [[ $attempt -gt 0 ]]; then
             echo "Attempt $attempt of $API_RETRY_ATTEMPTS"
         fi
+
+        aws eks wait cluster-active \
+            --region=${AWS_DEFAULT_REGION} \
+            --name=${CLUSTER_NAME}
+
         aws eks describe-cluster \
             --region=${AWS_DEFAULT_REGION} \
             --name=${CLUSTER_NAME} \
@@ -154,12 +168,7 @@ fi
 echo $B64_CLUSTER_CA | base64 -d > $CA_CERTIFICATE_FILE_PATH
 
 sed -i s,CLUSTER_NAME,$CLUSTER_NAME,g /var/lib/kubelet/kubeconfig
-kubectl config \
-    --kubeconfig /var/lib/kubelet/kubeconfig \
-    set-cluster \
-    kubernetes \
-    --certificate-authority=/etc/kubernetes/pki/ca.crt \
-    --server=$APISERVER_ENDPOINT
+sed -i s,MASTER_ENDPOINT,$APISERVER_ENDPOINT,g /var/lib/kubelet/kubeconfig
 
 ### kubelet.service configuration
 
@@ -190,8 +199,7 @@ fi
 
 cat <<EOF > /etc/systemd/system/kubelet.service.d/10-kubelet-args.conf
 [Service]
-Environment='KUBELET_ARGS=--node-ip=$INTERNAL_IP --pod-infra-container-image=$PAUSE_CONTAINER_ACCOUNT.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/eks/pause-${ARCH}:$PAUSE_CONTAINER_VERSION'
-
+Environment='KUBELET_ARGS=--node-ip=$INTERNAL_IP --pod-infra-container-image=$(get_pause_container_account_for_region "${AWS_DEFAULT_REGION}").dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/eks/pause-${ARCH}:$PAUSE_CONTAINER_VERSION'
 EOF
 
 if [[ -n "$KUBELET_EXTRA_ARGS" ]]; then
@@ -204,6 +212,7 @@ fi
 # Replace with custom docker config contents.
 if [[ -n "$DOCKER_CONFIG_JSON" ]]; then
     echo "$DOCKER_CONFIG_JSON" > /etc/docker/daemon.json
+    systemctl restart docker
 fi
 
 if [[ "$ENABLE_DOCKER_BRIDGE" = "true" ]]; then

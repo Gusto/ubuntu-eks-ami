@@ -60,6 +60,12 @@ sudo apt-get install -y \
     unzip \
     jq \
     nfs-kernel-server
+#@sinneduy: we will skip this for now, it looks like it overrides ssh configs.
+#ec2-instance-connect
+
+################################################################################
+### Time #######################################################################
+################################################################################
 
 # Make sure Amazon Time Sync Service starts on boot.
 update-rc.d chrony defaults 80 20
@@ -70,6 +76,15 @@ cat <<EOF | sudo tee -a /etc/chrony.conf
 # real-time clock. Note that it can’t be used along with the 'rtcfile' directive.
 rtcsync
 EOF
+
+# If current clocksource is xen, switch to tsc
+# @sinneduy: This probably won't work in ubuntu, should probably try to validate it later
+if grep --quiet xen /sys/devices/system/clocksource/clocksource0/current_clocksource &&
+  grep --quiet tsc /sys/devices/system/clocksource/clocksource0/available_clocksource; then
+    echo "tsc" | sudo tee /sys/devices/system/clocksource/clocksource0/current_clocksource
+else
+    echo "tsc as a clock source is not applicable, skipping."
+fi
 
 sudo apt-get install -y \
     build-essential \
@@ -171,8 +186,8 @@ sudo sha512sum -c cni-plugins-${ARCH}-${CNI_PLUGIN_VERSION}.tgz.sha512
 sudo tar -xvf cni-plugins-${ARCH}-${CNI_PLUGIN_VERSION}.tgz -C /opt/cni/bin
 rm cni-plugins-${ARCH}-${CNI_PLUGIN_VERSION}.tgz cni-plugins-${ARCH}-${CNI_PLUGIN_VERSION}.tgz.sha512
 
-# Install kubelet and kubectl
-# It should be noted that this diverges significantly from how amazon-eks-ami installs the kubelet and kubectl binaries
+# Install kubelet
+# @sinneduy It should be noted that this diverges significantly from how amazon-eks-ami installs the kubelet and kubectl binaries
 # https://github.com/awslabs/amazon-eks-ami/blob/master/install-worker.sh#L143-L170
 curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
 sudo bash -c "cat <<EOF >/etc/apt/sources.list.d/kubernetes.list
@@ -181,15 +196,8 @@ EOF"
 
 sudo apt-get update -y
 
-# This hack is necessary for:
-# https://github.com/kubernetes/kubernetes/issues/69489
-# EKS in Amazon Linux 2 bypasses this because it installs kubelet by downloading a binary
-if [ ${KUBERNETES_VERSION:0:4} == "1.10" ]; then
-  sudo apt-get install kubernetes-cni=0.6.0-00
-fi
-
-sudo apt-get install -y kubelet=$KUBERNETES_VERSION-00 kubectl=$KUBERNETES_VERSION-00
-sudo apt-mark hold kubelet kubectl
+sudo apt-get install -y kubelet=$KUBERNETES_VERSION-00
+sudo apt-mark hold kubelet
 
 # Install aws-iam-authenticator
 echo "Downloading binaries from: s3://$BINARY_BUCKET_NAME"
@@ -197,7 +205,7 @@ S3_DOMAIN="s3-$BINARY_BUCKET_REGION"
 if [ "$BINARY_BUCKET_REGION" = "us-east-1" ]; then
     S3_DOMAIN="s3"
 fi
-S3_URL_BASE="https://$S3_DOMAIN.amazonaws.com/$BINARY_BUCKET_NAME/$KUBERNETES_VERSION/$KUBERNETES_BUILD_DATE/bin/linux/$ARCH"
+S3_URL_BASE="https://$BINARY_BUCKET_NAME.$S3_DOMAIN.amazonaws.com/$KUBERNETES_VERSION/$KUBERNETES_BUILD_DATE/bin/linux/$ARCH"
 S3_PATH="s3://$BINARY_BUCKET_NAME/$KUBERNETES_VERSION/$KUBERNETES_BUILD_DATE/bin/linux/$ARCH"
 
 BINARIES=(
@@ -222,7 +230,8 @@ done
 sudo rm *.sha256
 
 KUBELET_CONFIG=""
-if [ "$KUBERNETES_VERSION" = "1.10" ] || [ "$KUBERNETES_VERSION" = "1.11" ]; then
+KUBERNETES_MINOR_VERSION=${KUBERNETES_VERSION%.*}
+if [ "$KUBERNETES_MINOR_VERSION" = "1.10" ] || [ "$KUBERNETES_MINOR_VERSION" = "1.11" ]; then
     KUBELET_CONFIG=kubelet-config.json
 else
     # For newer versions use this config to fix https://github.com/kubernetes/kubernetes/issues/74412.
