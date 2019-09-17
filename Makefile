@@ -62,6 +62,10 @@ k8s: validate
 1.13: validate
 	$(MAKE) version=1.13.7 kubernetes_build_date=2019-06-11 k8s
 
+.PHONY: 1.14
+1.14: validate
+	$(MAKE) version=1.14.7 kubernetes_build_date=2019-06-11 k8s
+
 .PHONY: latest
 latest: validate
 	$(MAKE) version=latest kubernetes_build_date=2019-06-11 k8s
@@ -81,6 +85,10 @@ publish-1.12: validate
 .PHONY: publish-1.13
 publish-1.13: validate
 	$(MAKE) PUBLISH=true 1.13
+
+.PHONY: publish-1.14
+publish-1.13: validate
+	$(MAKE) PUBLISH=true 1.14
 
 .PHONY: publish-latest
 publish-latest: validate
