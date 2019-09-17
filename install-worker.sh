@@ -49,8 +49,8 @@ fi
 ################################################################################
 
 # Update the OS to begin with to catch up to the latest packages.
+sudo add-apt-repository universe
 sudo apt-get update -y
-sudo apt-get dist-upgrade -y
 
 # It should be noted that this installs awscli 1.14, which does not contain EKS.
 # We install the latest version of the awscli further down, after pip3 has been installed
