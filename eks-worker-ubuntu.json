@@ -100,6 +100,12 @@
     },
     {
       "type": "shell",
+      "inline": [
+        "/usr/bin/cloud-init status --wait"
+      ]
+    },
+    {
+      "type": "shell",
       "script": "{{template_dir}}/install-worker.sh",
       "environment_vars": [
         "AMI_NAME={{user `ami_name`}}",
