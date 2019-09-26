@@ -15,7 +15,7 @@ endif
 
 kubernetes_version := $(version)
 ifeq ($(version), latest)
-kubernetes_version := 1.13.7
+kubernetes_version := 1.14.6
 endif
 
 arch ?= x86_64
@@ -38,7 +38,7 @@ T_YELLOW := \e[0;33m
 T_RESET := \e[0m
 
 .PHONY: all
-all: 1.11 1.12 1.13 latest
+all: 1.11 1.12 1.13 1.14 latest
 
 .PHONY: validate
 validate:
@@ -52,19 +52,23 @@ k8s: validate
 
 .PHONY: 1.11
 1.11: validate
-	$(MAKE) version=1.11.9 kubernetes_build_date=2019-03-27 k8s
+	$(MAKE) version=1.11.10 kubernetes_build_date=2019-08-14 k8s
 
 .PHONY: 1.12
 1.12: validate
-	$(MAKE) version=1.12.7 kubernetes_build_date=2019-03-27 k8s
+	$(MAKE) version=1.12.10 kubernetes_build_date=2019-08-14 k8s
 
 .PHONY: 1.13
 1.13: validate
-	$(MAKE) version=1.13.7 kubernetes_build_date=2019-06-11 k8s
+	$(MAKE) version=1.13.8 kubernetes_build_date=2019-08-14 k8s
+
+.PHONY: 1.14
+1.14: validate
+	$(MAKE) version=1.14.6 kubernetes_build_date=2019-08-22 k8s
 
 .PHONY: latest
 latest: validate
-	$(MAKE) version=latest kubernetes_build_date=2019-06-11 k8s
+	$(MAKE) version=latest kubernetes_build_date=2019-08-22 k8s
 
 .PHONY: publish
 publish: validate
@@ -81,6 +85,10 @@ publish-1.12: validate
 .PHONY: publish-1.13
 publish-1.13: validate
 	$(MAKE) PUBLISH=true 1.13
+
+.PHONY: publish-1.14
+publish-1.13: validate
+	$(MAKE) PUBLISH=true 1.14
 
 .PHONY: publish-latest
 publish-latest: validate
