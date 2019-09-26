@@ -87,7 +87,7 @@ publish-1.13: validate
 	$(MAKE) PUBLISH=true 1.13
 
 .PHONY: publish-1.14
-publish-1.13: validate
+publish-1.14: validate
 	$(MAKE) PUBLISH=true 1.14
 
 .PHONY: publish-latest
