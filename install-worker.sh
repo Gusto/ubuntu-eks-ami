@@ -62,7 +62,7 @@ sudo apt-get install -y \
     jq \
     nfs-kernel-server
 #@sinneduy: we will skip this for now, it looks like it overrides ssh configs.
-#ec2-instance-connect
+    #ec2-instance-connect
 
 ################################################################################
 ### Time #######################################################################
@@ -72,11 +72,19 @@ sudo apt-get install -y \
 update-rc.d chrony defaults 80 20
 
 # Make sure that chronyd syncs RTC clock to the kernel.
-cat <<EOF | sudo tee -a /etc/chrony.conf
-# This directive enables kernel synchronisation (every 11 minutes) of the
-# real-time clock. Note that it can’t be used along with the 'rtcfile' directive.
-rtcsync
-EOF
+# This can be commented out because this is set in the chrony config by default
+#cat <<EOF | sudo tee -a /etc/chrony.conf
+## This directive enables kernel synchronisation (every 11 minutes) of the
+## real-time clock. Note that it can’t be used along with the 'rtcfile' directive.
+#rtcsync
+#EOF
+
+# However, chrony does not use Amazon Time Sync Service by default in Ubuntu
+# So, we will have to configure it to prefer it according to this:
+# https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/set-time.html#configure-amazon-time-service-ubuntu
+
+sudo sed -i '1s/^/server 169.254.169.123 prefer iburst minpoll 4 maxpoll 4\n/' /etc/chrony/chrony.conf
+
 
 # If current clocksource is xen, switch to tsc
 # @sinneduy: This probably won't work in ubuntu, should probably try to validate it later
