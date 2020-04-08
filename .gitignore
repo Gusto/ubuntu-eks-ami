@@ -2,4 +2,4 @@ manifest.json
 *.swp
 variables.json
 packer
-*.sh
+/*.sh

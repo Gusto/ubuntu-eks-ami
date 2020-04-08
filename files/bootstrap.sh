@@ -234,8 +234,8 @@ mkdir -p $CA_CERTIFICATE_DIRECTORY
 if [[ -z "${B64_CLUSTER_CA}" ]] && [[ -z "${APISERVER_ENDPOINT}" ]]; then
     DESCRIBE_CLUSTER_RESULT="/tmp/describe_cluster_result.txt"
     for attempt in `seq 0 $API_RETRY_ATTEMPTS`; do
+        rc=0
         if [[ $attempt -gt 0 ]]; then
-            rc=0
             echo "Attempt $attempt of $API_RETRY_ATTEMPTS"
         fi
 
