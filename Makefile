@@ -19,7 +19,7 @@ endif
 
 kubernetes_version := $(version)
 ifeq ($(version), latest)
-kubernetes_version := 1.14.6
+kubernetes_version := 1.15.10
 endif
 
 arch ?= x86_64
@@ -64,7 +64,7 @@ k8s: validate
 
 .PHONY: 1.15
 1.15:
-	$(MAKE) k8s kubernetes_version=1.15.10 kubernetes_build_date=2020-02-22
+	$(MAKE) version=1.15.10 kubernetes_build_date=2020-02-22 k8s
 
 .PHONY: latest
 latest: validate
