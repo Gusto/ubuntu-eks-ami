@@ -7,10 +7,9 @@ Requires=docker.service
 # For the resolv-conf, please see:
 # https://github.com/kubernetes/kubeadm/issues/273
 [Service]
-ExecStartPre=/sbin/iptables -P FORWARD ACCEPT
+ExecStartPre=/sbin/iptables -P FORWARD ACCEPT -w 5
 ExecStart=/usr/bin/kubelet --cloud-provider aws \
     --config /etc/kubernetes/kubelet/kubelet-config.json \
-    --allow-privileged=true \
     --kubeconfig /var/lib/kubelet/kubeconfig \
     --container-runtime docker \
     --resolv-conf=/run/systemd/resolve/resolv.conf \

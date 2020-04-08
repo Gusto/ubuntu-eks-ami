@@ -10,7 +10,7 @@
     "binary_bucket_region": "us-west-2",
     "kubernetes_version": null,
     "kubernetes_build_date": "",
-    "docker_version": "18.06",
+    "docker_version": "18.09",
     "cni_version": "v0.6.0",
     "cni_plugin_version": "v0.7.5",
 
@@ -20,10 +20,15 @@
     "instance_type": null,
     "ami_description": "EKS Kubernetes Worker AMI with Ubuntu 18.04 image",
 
+    "security_group_id": "",
     "ssh_interface": "",
     "ssh_username": "ubuntu",
     "vpc_id" : "",
     "subnet_id" : "",
+    "remote_folder" : "",
+    "launch_block_device_mappings_volume_size": "10",
+    "ami_users" : "",
+    "aadditional_apt_repos" : "",
     "aws_access_key" : "",
     "aws_secret_key" : "",
     "aws_token" : ""
@@ -38,7 +43,9 @@
       "access_key": "{{user `aws_access_key`}}",
       "secret_key": "{{user `aws_secret_key`}}",
       "token": "{{user `aws_token`}}",
+      "ami_users": "{{user `ami_users`}}",
       "ami_groups": "{{user `ami_groups`}}",
+      "snapshot_users": "{{user `ami_users`}}",
       "source_ami_filter": {
         "filters": {
           "architecture": "{{user `arch`}}",
@@ -55,7 +62,7 @@
         {
           "device_name": "/dev/sda1",
           "volume_type": "gp2",
-          "volume_size": 10,
+          "volume_size": "{{user `launch_block_device_mappings_volume_size`}}",
           "delete_on_termination": true
         }
       ],
@@ -67,6 +74,7 @@
           "delete_on_termination": true
         }
       ],
+      "security_group_id": "{{user `security_group_id`}}",
       "ssh_username": "{{user `ssh_username`}}",
       "ssh_interface": "{{user `ssh_interface`}}",
       "ssh_pty": true,
@@ -91,6 +99,7 @@
   "provisioners": [
     {
       "type": "shell",
+      "remote_folder": "{{ user `remote_folder`}}",
       "inline": ["mkdir -p /tmp/worker/"]
     },
     {
@@ -106,7 +115,8 @@
     },
     {
       "type": "shell",
-      "script": "{{template_dir}}/install-worker.sh",
+      "remote_folder": "{{ user `remote_folder`}}",
+      "script": "{{template_dir}}/scripts/install-worker.sh",
       "environment_vars": [
         "AMI_NAME={{user `ami_name`}}",
         "KUBERNETES_VERSION={{user `kubernetes_version`}}",
@@ -117,6 +127,11 @@
         "CNI_VERSION={{user `cni_version`}}",
         "CNI_PLUGIN_VERSION={{user `cni_plugin_version`}}"
       ]
+    },
+    {
+      "type": "shell",
+      "remote_folder": "{{ user `remote_folder`}}",
+      "script": "{{template_dir}}/scripts/validate.sh"
     }
   ],
   "post-processors": [
