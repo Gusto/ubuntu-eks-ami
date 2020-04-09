@@ -1,5 +1,5 @@
 PACKER_BINARY ?= packer
-PACKER_VARIABLES := aws_region ami_name binary_bucket_name binary_bucket_region kubernetes_version kubernetes_build_date docker_version cni_version cni_plugin_version source_ami_id source_ami_owners arch instance_type security_group_id vpc_id subnet_id
+PACKER_VARIABLES := aws_region ami_name ami_groups binary_bucket_name binary_bucket_region kubernetes_version kubernetes_build_date docker_version cni_version cni_plugin_version source_ami_id source_ami_owners arch instance_type security_group_id vpc_id subnet_id
 
 AWS_DEFAULT_REGION ?= us-west-2
 
