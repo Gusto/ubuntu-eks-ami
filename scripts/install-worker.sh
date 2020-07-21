@@ -296,6 +296,15 @@ kernel.panic_on_oops=1
 EOF
 
 ################################################################################
+### https://twitter.com/0xdabbad00/status/1281608156909469696 ##################
+### https://aws.amazon.com/security/security-bulletins/AWS-2020-002/ ###########
+### https://github.com/kubernetes/kubernetes/issues/92315 ######################
+### This can be removed after we have upgraded kubelet AND kube-proxy ##########
+################################################################################
+iptables -I INPUT --dst 127.0.0.0/8 ! --src 127.0.0.0/8 \
+    -m conntrack ! --ctstate RELATED,ESTABLISHED,DNAT -j DROP
+
+################################################################################
 ### Cleanup ####################################################################
 ################################################################################
 
