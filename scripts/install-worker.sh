@@ -29,6 +29,7 @@ validate_env_set CNI_VERSION
 validate_env_set CNI_PLUGIN_VERSION
 validate_env_set KUBERNETES_VERSION
 validate_env_set KUBERNETES_BUILD_DATE
+validate_env_set PULL_CNI_FROM_GITHUB
 
 ################################################################################
 ### Machine Architecture #######################################################
@@ -175,6 +176,7 @@ fi
 # kubelet uses journald which has built-in rotation and capped size.
 # See man 5 journald.conf
 sudo mv $TEMPLATE_DIR/logrotate-kube-proxy /etc/logrotate.d/kube-proxy
+sudo mv $TEMPLATE_DIR/logrotate.conf /etc/logrotate.conf
 sudo chown root:root /etc/logrotate.d/kube-proxy
 sudo mkdir -p /var/log/journal
 
@@ -186,18 +188,6 @@ sudo mkdir -p /etc/kubernetes/manifests
 sudo mkdir -p /var/lib/kubernetes
 sudo mkdir -p /var/lib/kubelet
 sudo mkdir -p /opt/cni/bin
-
-wget https://github.com/containernetworking/cni/releases/download/${CNI_VERSION}/cni-${ARCH}-${CNI_VERSION}.tgz
-wget https://github.com/containernetworking/cni/releases/download/${CNI_VERSION}/cni-${ARCH}-${CNI_VERSION}.tgz.sha512
-sudo sha512sum -c cni-${ARCH}-${CNI_VERSION}.tgz.sha512
-sudo tar -xvf cni-${ARCH}-${CNI_VERSION}.tgz -C /opt/cni/bin
-rm cni-${ARCH}-${CNI_VERSION}.tgz cni-${ARCH}-${CNI_VERSION}.tgz.sha512
-
-wget https://github.com/containernetworking/plugins/releases/download/${CNI_PLUGIN_VERSION}/cni-plugins-${ARCH}-${CNI_PLUGIN_VERSION}.tgz
-wget https://github.com/containernetworking/plugins/releases/download/${CNI_PLUGIN_VERSION}/cni-plugins-${ARCH}-${CNI_PLUGIN_VERSION}.tgz.sha512
-sudo sha512sum -c cni-plugins-${ARCH}-${CNI_PLUGIN_VERSION}.tgz.sha512
-sudo tar -xvf cni-plugins-${ARCH}-${CNI_PLUGIN_VERSION}.tgz -C /opt/cni/bin
-rm cni-plugins-${ARCH}-${CNI_PLUGIN_VERSION}.tgz cni-plugins-${ARCH}-${CNI_PLUGIN_VERSION}.tgz.sha512
 
 # Install kubelet
 # @sinneduy It should be noted that this diverges significantly from how amazon-eks-ami installs the kubelet and kubectl binaries
@@ -211,6 +201,48 @@ sudo apt-get update -y
 
 sudo apt-get install -y kubelet=$KUBERNETES_VERSION-00
 sudo apt-mark hold kubelet
+
+if [ "$PULL_CNI_FROM_GITHUB" = "true" ]; then
+    echo "Downloading CNI assets from Github"
+    wget https://github.com/containernetworking/cni/releases/download/${CNI_VERSION}/cni-${ARCH}-${CNI_VERSION}.tgz
+    wget https://github.com/containernetworking/cni/releases/download/${CNI_VERSION}/cni-${ARCH}-${CNI_VERSION}.tgz.sha512
+
+    wget https://github.com/containernetworking/plugins/releases/download/${CNI_PLUGIN_VERSION}/cni-plugins-${ARCH}-${CNI_PLUGIN_VERSION}.tgz
+    wget https://github.com/containernetworking/plugins/releases/download/${CNI_PLUGIN_VERSION}/cni-plugins-${ARCH}-${CNI_PLUGIN_VERSION}.tgz.sha512
+    sudo sha512sum -c cni-${ARCH}-${CNI_VERSION}.tgz.sha512
+    sudo sha512sum -c cni-plugins-${ARCH}-${CNI_PLUGIN_VERSION}.tgz.sha512
+    rm cni-${ARCH}-${CNI_VERSION}.tgz.sha512
+    rm cni-plugins-${ARCH}-${CNI_PLUGIN_VERSION}.tgz.sha512
+else
+    # @sinneduy: since we don't download kubelet from an s3 bucket, we only need it if we are in this else statement
+    S3_DOMAIN="amazonaws.com"
+    if [ "$BINARY_BUCKET_REGION" = "cn-north-1" ] || [ "$BINARY_BUCKET_REGION" = "cn-northwest-1" ]; then
+        S3_DOMAIN="amazonaws.com.cn"
+    fi
+    S3_URL_BASE="https://$BINARY_BUCKET_NAME.s3.$BINARY_BUCKET_REGION.$S3_DOMAIN/$KUBERNETES_VERSION/$KUBERNETES_BUILD_DATE/bin/linux/$ARCH"
+    S3_PATH="s3://$BINARY_BUCKET_NAME/$KUBERNETES_VERSION/$KUBERNETES_BUILD_DATE/bin/linux/$ARCH"
+
+    CNI_BINARIES=(
+            cni-${ARCH}-${CNI_VERSION}.tgz
+            cni-plugins-${ARCH}-${CNI_PLUGIN_VERSION}.tgz
+    )
+    for binary in ${CNI_BINARIES[*]} ; do
+        if [[ ! -z "$AWS_ACCESS_KEY_ID" ]]; then
+            echo "AWS cli present - using it to copy binaries from s3."
+            aws s3 cp --region $BINARY_BUCKET_REGION $S3_PATH/$binary .
+            aws s3 cp --region $BINARY_BUCKET_REGION $S3_PATH/$binary.sha256 .
+            sudo sha256sum -c $binary.sha256
+        else
+            echo "AWS cli missing - using wget to fetch cni binaries from s3. Note: This won't work for private bucket."
+            sudo wget $S3_URL_BASE/$binary
+            sudo wget $S3_URL_BASE/$binary.sha256
+        fi
+    done
+fi
+sudo tar -xvf cni-${ARCH}-${CNI_VERSION}.tgz -C /opt/cni/bin
+sudo tar -xvf cni-plugins-${ARCH}-${CNI_PLUGIN_VERSION}.tgz -C /opt/cni/bin
+rm cni-${ARCH}-${CNI_VERSION}.tgz
+rm cni-plugins-${ARCH}-${CNI_PLUGIN_VERSION}.tgz
 
 KUBERNETES_MINOR_VERSION=${KUBERNETES_VERSION%.*}
 
@@ -251,6 +283,16 @@ ARCH="$(uname -m)"
 EOF
 sudo mv /tmp/release /etc/eks/release
 sudo chown -R root:root /etc/eks/
+
+################################################################################
+### Stuff required by "protectKernelDefaults=true" #############################
+################################################################################
+
+cat <<EOF | sudo tee -a /etc/sysctl.d/99-amazon.conf
+vm.overcommit_memory=1
+kernel.panic=10
+kernel.panic_on_oops=1
+EOF
 
 ################################################################################
 ### Cleanup ####################################################################
