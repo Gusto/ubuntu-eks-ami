@@ -141,11 +141,6 @@
       "type": "shell",
       "remote_folder": "{{ user `remote_folder`}}",
       "script": "{{template_dir}}/scripts/validate.sh"
-    },
-    {
-      "type": "manifest",
-      "output": "{{user `ami_name`}}-manifest.json",
-      "strip_path": true
     }
   ],
   "post-processors": [
