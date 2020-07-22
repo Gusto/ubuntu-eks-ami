@@ -301,7 +301,7 @@ EOF
 ### https://github.com/kubernetes/kubernetes/issues/92315 ######################
 ### This can be removed after we have upgraded kubelet AND kube-proxy ##########
 ################################################################################
-iptables -I INPUT --dst 127.0.0.0/8 ! --src 127.0.0.0/8 \
+sudo iptables -I INPUT --dst 127.0.0.0/8 ! --src 127.0.0.0/8 \
     -m conntrack ! --ctstate RELATED,ESTABLISHED,DNAT -j DROP
 
 ################################################################################
