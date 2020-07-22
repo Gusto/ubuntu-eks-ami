@@ -3,15 +3,6 @@ steps:
     command: 'docker build . -t gusto/packer && docker run -v $(pwd):/packer -e vpc_id -e subnet_id gusto/packer make validate'
     agents:
       queue: 'eks-ubuntu-packer'
-  - label: ':ubuntu: Test EKS ubuntu AMI for 1.13'
-    command: 'docker build . -t gusto/packer && docker run -v $(pwd):/packer -e vpc_id -e subnet_id gusto/packer make 1.13'
-    agents:
-      queue: 'eks-ubuntu-packer'
-    branches: '!master'
-    retry:
-      automatic:
-        - limit: 3
-          exit_status: "*"
   - label: ':ubuntu: Test EKS ubuntu AMI for 1.14'
     command: 'docker build . -t gusto/packer && docker run -v $(pwd):/packer -e vpc_id -e subnet_id gusto/packer make 1.14'
     agents:
@@ -30,8 +21,8 @@ steps:
       automatic:
         - limit: 3
           exit_status: "*"
-  - label: ':ubuntu: Test EKS ubuntu AMI latest'
-    command: 'docker build . -t gusto/packer && docker run -v $(pwd):/packer -e vpc_id -e subnet_id gusto/packer make latest'
+  - label: ':ubuntu: Test EKS ubuntu AMI for 1.16'
+    command: 'docker build . -t gusto/packer && docker run -v $(pwd):/packer -e vpc_id -e subnet_id gusto/packer make 1.16'
     agents:
       queue: 'eks-ubuntu-packer'
     branches: '!master'
@@ -39,11 +30,20 @@ steps:
       automatic:
         - limit: 3
           exit_status: "*"
-  - label: ':ubuntu: Publish ubuntu AMI 1.13'
-    command: 'docker build . -t gusto/packer && docker run -v $(pwd):/packer -e vpc_id -e subnet_id gusto/packer make publish-1.13'
+  - label: ':ubuntu: Test EKS ubuntu AMI for 1.17'
+    command: 'docker build . -t gusto/packer && docker run -v $(pwd):/packer -e vpc_id -e subnet_id gusto/packer make 1.17'
     agents:
       queue: 'eks-ubuntu-packer'
-    branches: 'master'
+    branches: '!master'
+    retry:
+      automatic:
+        - limit: 3
+          exit_status: "*"
+  - label: ':ubuntu: Test EKS ubuntu AMI latest'
+    command: 'docker build . -t gusto/packer && docker run -v $(pwd):/packer -e vpc_id -e subnet_id gusto/packer make latest'
+    agents:
+      queue: 'eks-ubuntu-packer'
+    branches: '!master'
     retry:
       automatic:
         - limit: 3
@@ -59,6 +59,24 @@ steps:
           exit_status: "*"
   - label: ':ubuntu: Publish ubuntu AMI 1.15'
     command: 'docker build . -t gusto/packer && docker run -v $(pwd):/packer -e vpc_id -e subnet_id gusto/packer make publish-1.15'
+    agents:
+      queue: 'eks-ubuntu-packer'
+    branches: 'master'
+    retry:
+      automatic:
+        - limit: 3
+          exit_status: "*"
+  - label: ':ubuntu: Publish ubuntu AMI 1.16'
+    command: 'docker build . -t gusto/packer && docker run -v $(pwd):/packer -e vpc_id -e subnet_id gusto/packer make publish-1.16'
+    agents:
+      queue: 'eks-ubuntu-packer'
+    branches: 'master'
+    retry:
+      automatic:
+        - limit: 3
+          exit_status: "*"
+  - label: ':ubuntu: Publish ubuntu AMI 1.17'
+    command: 'docker build . -t gusto/packer && docker run -v $(pwd):/packer -e vpc_id -e subnet_id gusto/packer make publish-1.17'
     agents:
       queue: 'eks-ubuntu-packer'
     branches: 'master'
