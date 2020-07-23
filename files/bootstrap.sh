@@ -282,7 +282,7 @@ if [ -z "$MAX_PODS" ]; then
 fi
 
 # calculates the amount of each resource to reserve
-mebibytes_to_reserve=$(get_memory_mebibytes_to_reserve $MAX_PODS)
+mebibytes_to_reserve=$(get_memory_mebibytes_to_reserve $INSTANCE_TYPE)
 cpu_millicores_to_reserve=$(get_cpu_millicores_to_reserve)
 # writes kubeReserved and evictionHard to the kubelet-config using the amount of CPU and memory to be reserved
 echo "$(jq '. += {"evictionHard": {"memory.available": "100Mi", "nodefs.available": "10%", "nodefs.inodesFree": "5%"}}' $KUBELET_CONFIG)" > $KUBELET_CONFIG
