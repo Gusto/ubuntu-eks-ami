@@ -93,7 +93,8 @@
           "cni_plugin_version": "{{ user `cni_plugin_version`}}"
       },
       "ami_name": "{{user `ami_name`}}",
-      "ami_description": "{{user `ami_description` }}, (k8s: {{ user `version`}}, docker:{{ user `docker_version`}})"
+      "ami_description": "{{user `ami_description` }}, (k8s: {{ user `version`}}, docker:{{ user `docker_version`}})",
+      "ami_regions": ["us-east-1"]
     }
   ],
 

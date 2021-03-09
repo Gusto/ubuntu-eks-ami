@@ -43,7 +43,7 @@ T_YELLOW := \e[0;33m
 T_RESET := \e[0m
 
 .PHONY: all
-all: 1.14 1.15 1.16 1.17 latest
+all: 1.16 1.17 1.18 1.19 latest
 
 .PHONY: validate
 validate:
@@ -55,21 +55,21 @@ k8s: validate
 	@echo "$(T_GREEN)Building AMI for version $(T_YELLOW)$(version)$(T_GREEN) on $(T_YELLOW)$(arch)$(T_RESET)"
 	$(PACKER_BINARY) build $(foreach packerVar,$(PACKER_VARIABLES), $(if $($(packerVar)),--var $(packerVar)='$($(packerVar))',)) eks-worker-ubuntu.json
 
-.PHONY: 1.14
-1.14: validate
-	$(MAKE) version=1.14.9 kubernetes_build_date=2020-07-08 k8s
-
-.PHONY: 1.15
-1.15:
-	$(MAKE) version=1.15.11 kubernetes_build_date=2020-07-08 k8s
-
 .PHONY: 1.16
 1.16:
 	$(MAKE) version=1.16.12 kubernetes_build_date=2020-07-08 k8s
 
 .PHONY: 1.17
 1.17: validate
-	$(MAKE) version=1.17.7 kubernetes_build_date=2020-07-08 k8s
+	$(MAKE) version=1.17.12 kubernetes_build_date=2021-03-10 k8s
+
+.PHONY: 1.18.9
+1.18: validate
+	$(MAKE) version=1.18.9 kubernetes_build_date=2021-03-10 k8s
+
+.PHONY: 1.19.6
+1.18: validate
+	$(MAKE) version=1.19.6 kubernetes_build_date=2021-03-10 k8s
 
 
 .PHONY: latest
@@ -80,14 +80,6 @@ latest: validate
 publish: validate
 	$(MAKE) PUBLISH=true all
 
-.PHONY: publish-1.14
-publish-1.14: validate
-	$(MAKE) PUBLISH=true 1.14
-
-.PHONY: publish-1.15
-publish-1.15: validate
-	$(MAKE) PUBLISH=true 1.15
-
 .PHONY: publish-1.16
 publish-1.16: validate
 	$(MAKE) PUBLISH=true 1.16
@@ -95,6 +87,15 @@ publish-1.16: validate
 .PHONY: publish-1.17
 publish-1.17: validate
 	$(MAKE) PUBLISH=true 1.17
+
+.PHONY: publish-1.18
+publish-1.17: validate
+	$(MAKE) PUBLISH=true 1.18
+
+.PHONY: publish-1.19
+publish-1.17: validate
+	$(MAKE) PUBLISH=true 1.19
+
 
 .PHONY: publish-latest
 publish-latest: validate
