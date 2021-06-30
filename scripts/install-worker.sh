@@ -12,20 +12,21 @@ TEMPLATE_DIR=${TEMPLATE_DIR:-/tmp/worker}
 ### Validate Required Arguments ################################################
 ################################################################################
 validate_env_set() {
-    (
-        set +o nounset
+  (
+    set +o nounset
 
-        if [ -z "${!1}" ]; then
-            echo "Packer variable '$1' was not set. Aborting"
-            exit 1
-        fi
-    )
+    if [ -z "${!1}" ]; then
+      echo "Packer variable '$1' was not set. Aborting"
+      exit 1
+    fi
+  )
 }
 
 validate_env_set BINARY_BUCKET_NAME
 validate_env_set BINARY_BUCKET_REGION
 validate_env_set DOCKER_VERSION
-validate_env_set CNI_VERSION
+validate_env_set CONTAINERD_VERSION
+validate_env_set RUNC_VERSION
 validate_env_set CNI_PLUGIN_VERSION
 validate_env_set KUBERNETES_VERSION
 validate_env_set KUBERNETES_BUILD_DATE
@@ -37,12 +38,12 @@ validate_env_set PULL_CNI_FROM_GITHUB
 
 MACHINE=$(uname -m)
 if [ "$MACHINE" == "x86_64" ]; then
-    ARCH="amd64"
+  ARCH="amd64"
 elif [ "$MACHINE" == "aarch64" ]; then
-    ARCH="arm64"
+  ARCH="arm64"
 else
-    echo "Unknown machine architecture '$MACHINE'" >&2
-    exit 1
+  echo "Unknown machine architecture '$MACHINE'" >&2
+  exit 1
 fi
 
 ################################################################################
@@ -56,14 +57,16 @@ sudo apt-get update -y
 # It should be noted that this installs awscli 1.14, which does not contain EKS.
 # We install the latest version of the awscli further down, after pip3 has been installed
 sudo apt-get install -y \
-    conntrack \
-    chrony \
-    socat \
-    unzip \
-    jq \
-    nfs-kernel-server
+  conntrack \
+  chrony \
+  socat \
+  unzip \
+  jq \
+  nfs-kernel-server \
+  wget \
+  ipvsadm
 # @sinneduy: we will skip this for now, it looks like it overrides ssh configs.
-    #ec2-instance-connect
+#ec2-instance-connect
 
 # @sinneduy: We are not going to bother to make sure ec2-net-utils is not installed
 # https://github.com/awslabs/amazon-eks-ami/compare/b85ef2fce5f46eddafa2e8881d757b31a9feed81...4e0e9164885e07851ed4a737461349ae6012765e#diff-fa7aab304e6b43e978fe591811173fa9R67
@@ -89,34 +92,33 @@ update-rc.d chrony defaults 80 20
 
 sudo sed -i '1s/^/server 169.254.169.123 prefer iburst minpoll 4 maxpoll 4\n/' /etc/chrony/chrony.conf
 
-
 # If current clocksource is xen, switch to tsc
 # @sinneduy: This probably won't work in ubuntu, should probably try to validate it later
 if grep --quiet xen /sys/devices/system/clocksource/clocksource0/current_clocksource &&
   grep --quiet tsc /sys/devices/system/clocksource/clocksource0/available_clocksource; then
-    echo "tsc" | sudo tee /sys/devices/system/clocksource/clocksource0/current_clocksource
+  echo "tsc" | sudo tee /sys/devices/system/clocksource/clocksource0/current_clocksource
 else
-    echo "tsc as a clock source is not applicable, skipping."
+  echo "tsc as a clock source is not applicable, skipping."
 fi
 
 sudo apt-get install -y \
-    build-essential \
-    checkinstall
+  build-essential \
+  checkinstall
 sudo apt-get install -y \
-     libreadline-gplv2-dev \
-     libncursesw5-dev \
-     libssl-dev \
-     libsqlite3-dev \
-     tk-dev \
-     libgdbm-dev \
-     libc6-dev \
-     libbz2-dev
+  libreadline-gplv2-dev \
+  libncursesw5-dev \
+  libssl-dev \
+  libsqlite3-dev \
+  tk-dev \
+  libgdbm-dev \
+  libc6-dev \
+  libbz2-dev
 
 sudo apt-get install -y \
-    apt-transport-https \
-    ca-certificates \
-    curl \
-    software-properties-common
+  apt-transport-https \
+  ca-certificates \
+  curl \
+  software-properties-common
 
 sudo apt-get install -y python3-pip
 
@@ -151,19 +153,26 @@ if [[ "$INSTALL_DOCKER" == "true" ]]; then
   curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
   sudo apt-key fingerprint 0EBFCD88
   sudo add-apt-repository \
-     "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
+    "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
      $(lsb_release -cs) \
      stable"
   cat /etc/apt/sources.list
   sudo apt-get update -y
-  sudo groupadd -fog 1950 docker && sudo useradd --gid 1950 docker
-  sudo apt-get install -y docker-ce
+  sudo groupadd -fog 1950 docker
+  sudo useradd --gid $(getent group docker | cut -d: -f3) docker
+  sudo apt-get install -y docker-ce=${DOCKER_VERSION}
   sudo usermod -aG docker $USER
-  
+
+  # install runc
+  sudo apt-get install -y runc=${RUNC_VERSION}
+
+  # install condtainerd
+  sudo apt-get install -y containerd=${CONTAINERD_VERSION}
+
   sudo mkdir -p /etc/docker
   sudo mv $TEMPLATE_DIR/docker-daemon.json /etc/docker/daemon.json
   sudo chown root:root /etc/docker/daemon.json
-  
+
   # Enable docker daemon to start on boot.
   sudo systemctl daemon-reload
   sudo systemctl enable docker
@@ -203,57 +212,57 @@ sudo apt-get update -y
 sudo apt-get install -y kubelet=$KUBERNETES_VERSION-00
 sudo apt-mark hold kubelet
 
+# Since CNI 0.7.0, all releases are done in the plugins repo.
+CNI_PLUGIN_FILENAME="cni-plugins-linux-${ARCH}-${CNI_PLUGIN_VERSION}"
+
 if [ "$PULL_CNI_FROM_GITHUB" = "true" ]; then
-    echo "Downloading CNI assets from Github"
-    wget https://github.com/containernetworking/cni/releases/download/${CNI_VERSION}/cni-${ARCH}-${CNI_VERSION}.tgz
-    wget https://github.com/containernetworking/cni/releases/download/${CNI_VERSION}/cni-${ARCH}-${CNI_VERSION}.tgz.sha512
-
-    wget https://github.com/containernetworking/plugins/releases/download/${CNI_PLUGIN_VERSION}/cni-plugins-${ARCH}-${CNI_PLUGIN_VERSION}.tgz
-    wget https://github.com/containernetworking/plugins/releases/download/${CNI_PLUGIN_VERSION}/cni-plugins-${ARCH}-${CNI_PLUGIN_VERSION}.tgz.sha512
-    sudo sha512sum -c cni-${ARCH}-${CNI_VERSION}.tgz.sha512
-    sudo sha512sum -c cni-plugins-${ARCH}-${CNI_PLUGIN_VERSION}.tgz.sha512
-    rm cni-${ARCH}-${CNI_VERSION}.tgz.sha512
-    rm cni-plugins-${ARCH}-${CNI_PLUGIN_VERSION}.tgz.sha512
+  echo "Downloading CNI plugins from Github"
+  wget "https://github.com/containernetworking/plugins/releases/download/${CNI_PLUGIN_VERSION}/${CNI_PLUGIN_FILENAME}.tgz"
+  wget "https://github.com/containernetworking/plugins/releases/download/${CNI_PLUGIN_VERSION}/${CNI_PLUGIN_FILENAME}.tgz.sha512"
+  sudo sha512sum -c "${CNI_PLUGIN_FILENAME}.tgz.sha512"
+  rm "${CNI_PLUGIN_FILENAME}.tgz.sha512"
 else
-    # @sinneduy: since we don't download kubelet from an s3 bucket, we only need it if we are in this else statement
-    S3_DOMAIN="amazonaws.com"
-    if [ "$BINARY_BUCKET_REGION" = "cn-north-1" ] || [ "$BINARY_BUCKET_REGION" = "cn-northwest-1" ]; then
-        S3_DOMAIN="amazonaws.com.cn"
-    fi
-    S3_URL_BASE="https://$BINARY_BUCKET_NAME.s3.$BINARY_BUCKET_REGION.$S3_DOMAIN/$KUBERNETES_VERSION/$KUBERNETES_BUILD_DATE/bin/linux/$ARCH"
-    S3_PATH="s3://$BINARY_BUCKET_NAME/$KUBERNETES_VERSION/$KUBERNETES_BUILD_DATE/bin/linux/$ARCH"
+  # @sinneduy: since we don't download kubelet from an s3 bucket, we only need it if we are in this else statement
+  S3_DOMAIN="amazonaws.com"
+  if [ "$BINARY_BUCKET_REGION" = "cn-north-1" ] || [ "$BINARY_BUCKET_REGION" = "cn-northwest-1" ]; then
+    S3_DOMAIN="amazonaws.com.cn"
+  elif [ "$BINARY_BUCKET_REGION" = "us-iso-east-1" ]; then
+    S3_DOMAIN="c2s.ic.gov"
+  elif [ "$BINARY_BUCKET_REGION" = "us-isob-east-1" ]; then
+    S3_DOMAIN="sc2s.sgov.gov"
+  fi
+  S3_URL_BASE="https://$BINARY_BUCKET_NAME.s3.$BINARY_BUCKET_REGION.$S3_DOMAIN/$KUBERNETES_VERSION/$KUBERNETES_BUILD_DATE/bin/linux/$ARCH"
+  S3_PATH="s3://$BINARY_BUCKET_NAME/$KUBERNETES_VERSION/$KUBERNETES_BUILD_DATE/bin/linux/$ARCH"
 
-    CNI_BINARIES=(
-            cni-${ARCH}-${CNI_VERSION}.tgz
-            cni-plugins-${ARCH}-${CNI_PLUGIN_VERSION}.tgz
-    )
-    for binary in ${CNI_BINARIES[*]} ; do
-        if [[ ! -z "$AWS_ACCESS_KEY_ID" ]]; then
-            echo "AWS cli present - using it to copy binaries from s3."
-            aws s3 cp --region $BINARY_BUCKET_REGION $S3_PATH/$binary .
-            aws s3 cp --region $BINARY_BUCKET_REGION $S3_PATH/$binary.sha256 .
-            sudo sha256sum -c $binary.sha256
-        else
-            echo "AWS cli missing - using wget to fetch cni binaries from s3. Note: This won't work for private bucket."
-            sudo wget $S3_URL_BASE/$binary
-            sudo wget $S3_URL_BASE/$binary.sha256
-        fi
-    done
+  if [[ -n "$AWS_ACCESS_KEY_ID" ]]; then
+    echo "AWS cli present - using it to copy binaries from s3."
+    aws s3 cp --region $BINARY_BUCKET_REGION $S3_PATH/${CNI_PLUGIN_FILENAME}.tgz .
+    aws s3 cp --region $BINARY_BUCKET_REGION $S3_PATH/${CNI_PLUGIN_FILENAME}.tgz.sha256 .
+  else
+    echo "AWS cli missing - using wget to fetch cni binaries from s3. Note: This won't work for private bucket."
+    sudo wget "$S3_URL_BASE/${CNI_PLUGIN_FILENAME}.tgz"
+    sudo wget "$S3_URL_BASE/${CNI_PLUGIN_FILENAME}.tgz.sha256"
+  fi
+  sudo sha256sum -c "${CNI_PLUGIN_FILENAME}.tgz.sha256"
 fi
-sudo tar -xvf cni-${ARCH}-${CNI_VERSION}.tgz -C /opt/cni/bin
-sudo tar -xvf cni-plugins-${ARCH}-${CNI_PLUGIN_VERSION}.tgz -C /opt/cni/bin
-rm cni-${ARCH}-${CNI_VERSION}.tgz
-rm cni-plugins-${ARCH}-${CNI_PLUGIN_VERSION}.tgz
 
-KUBERNETES_MINOR_VERSION=${KUBERNETES_VERSION%.*}
+sudo tar -xvf "${CNI_PLUGIN_FILENAME}.tgz" -C /opt/cni/bin
+rm "${CNI_PLUGIN_FILENAME}.tgz"
+
+sudo rm ./*.sha256
 
 sudo mkdir -p /etc/kubernetes/kubelet
 sudo mkdir -p /etc/systemd/system/kubelet.service.d
 sudo mv $TEMPLATE_DIR/kubelet-kubeconfig /var/lib/kubelet/kubeconfig
 sudo chown root:root /var/lib/kubelet/kubeconfig
 sudo mv $TEMPLATE_DIR/kubelet.service /etc/systemd/system/kubelet.service
-
 sudo chown root:root /etc/systemd/system/kubelet.service
+# Inject CSIServiceAccountToken feature gate to kubelet config if kubernetes version starts with 1.20.
+# This is only injected for 1.20 since CSIServiceAccountToken will be moved to beta starting 1.21.
+if [[ $KUBERNETES_VERSION == "1.20"* ]]; then
+    KUBELET_CONFIG_WITH_CSI_SERVICE_ACCOUNT_TOKEN_ENABLED=$(cat $TEMPLATE_DIR/kubelet-config.json | jq '.featureGates += {CSIServiceAccountToken: true}')
+    echo $KUBELET_CONFIG_WITH_CSI_SERVICE_ACCOUNT_TOKEN_ENABLED > $TEMPLATE_DIR/kubelet-config.json
+fi
 sudo mv $TEMPLATE_DIR/kubelet-config.json /etc/kubernetes/kubelet/kubelet-config.json
 sudo chown root:root /etc/kubernetes/kubelet/kubelet-config.json
 
@@ -270,12 +279,33 @@ sudo mv $TEMPLATE_DIR/eni-max-pods.txt /etc/eks/eni-max-pods.txt
 sudo mv $TEMPLATE_DIR/bootstrap.sh /etc/eks/bootstrap.sh
 sudo chmod +x /etc/eks/bootstrap.sh
 
+SONOBUOY_E2E_REGISTRY="${SONOBUOY_E2E_REGISTRY:-}"
+if [[ -n "$SONOBUOY_E2E_REGISTRY" ]]; then
+    sudo mv $TEMPLATE_DIR/sonobuoy-e2e-registry-config /etc/eks/sonobuoy-e2e-registry-config
+    sudo sed -i s,SONOBUOY_E2E_REGISTRY,$SONOBUOY_E2E_REGISTRY,g /etc/eks/sonobuoy-e2e-registry-config
+fi
+
+################################################################################
+### SSM Agent ##################################################################
+################################################################################
+
+if [ "$BINARY_BUCKET_REGION" != "us-iso-east-1" ] && [ "$BINARY_BUCKET_REGION" != "us-isob-east-1" ]; then
+    if [ "$BINARY_BUCKET_REGION" = "cn-north-1" ] || [ "$BINARY_BUCKET_REGION" = "cn-northwest-1" ]; then
+        sudo yum install -y https://s3.cn-north-1.amazonaws.com.cn/amazon-ssm-cn-north-1/latest/linux_$ARCH/amazon-ssm-agent.rpm
+    else
+        sudo yum install -y https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/linux_$ARCH/amazon-ssm-agent.rpm
+    fi
+
+    sudo systemctl enable amazon-ssm-agent
+    sudo systemctl start amazon-ssm-agent
+fi
+
 ################################################################################
 ### AMI Metadata ###############################################################
 ################################################################################
 
-BASE_AMI_ID=$(curl -s  http://169.254.169.254/latest/meta-data/ami-id)
-cat <<EOF > /tmp/release
+BASE_AMI_ID=$(curl -s http://169.254.169.254/latest/meta-data/ami-id)
+cat <<EOF >/tmp/release
 BASE_AMI_ID="$BASE_AMI_ID"
 BUILD_TIME="$(date)"
 BUILD_KERNEL="$(uname -r)"
@@ -296,27 +326,37 @@ kernel.panic_on_oops=1
 EOF
 
 ################################################################################
+### Setting up sysctl properties ###############################################
+################################################################################
+
+echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf
+echo fs.inotify.max_user_instances=8192 | sudo tee -a /etc/sysctl.conf
+echo vm.max_map_count=524288 | sudo tee -a /etc/sysctl.conf
+
+################################################################################
 ### https://twitter.com/0xdabbad00/status/1281608156909469696 ##################
 ### https://aws.amazon.com/security/security-bulletins/AWS-2020-002/ ###########
 ### https://github.com/kubernetes/kubernetes/issues/92315 ######################
 ### This can be removed after we have upgraded kubelet AND kube-proxy ##########
 ################################################################################
 sudo iptables -I INPUT --dst 127.0.0.0/8 ! --src 127.0.0.0/8 \
-    -m conntrack ! --ctstate RELATED,ESTABLISHED,DNAT -j DROP
+  -m conntrack ! --ctstate RELATED,ESTABLISHED,DNAT -j DROP
 
 ################################################################################
 ### Cleanup ####################################################################
 ################################################################################
 
-# Clean up apt caches to reduce the image size
-sudo apt-get clean
+CLEANUP_IMAGE="${CLEANUP_IMAGE:-true}"
+if [[ "$CLEANUP_IMAGE" == "true" ]]; then
+  # Clean up apt caches to reduce the image size
+  sudo apt-get clean
 
-sudo rm -rf \
-    $TEMPLATE_DIR  \
+  sudo rm -rf \
+    $TEMPLATE_DIR \
     /var/cache/apt
 
-# Clean up files to reduce confusion during debug
-sudo rm -rf \
+  # Clean up files to reduce confusion during debug
+  sudo rm -rf \
     /etc/hostname \
     /etc/machine-id \
     /etc/resolv.conf \
@@ -334,5 +374,6 @@ sudo rm -rf \
     /var/log/cloud-init.log \
     /var/log/auth.log \
     /var/log/wtmp
+fi
 
 sudo touch /etc/machine-id
