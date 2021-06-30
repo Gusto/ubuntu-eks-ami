@@ -1,7 +1,7 @@
 [Unit]
 Description=Kubernetes Kubelet
 Documentation=https://github.com/kubernetes/kubernetes
-After=docker.service
+After=docker.service iptables-restore.service
 Requires=docker.service
 
 # For the resolv-conf, please see:
@@ -15,9 +15,8 @@ ExecStart=/usr/bin/kubelet --cloud-provider aws \
     --resolv-conf=/run/systemd/resolve/resolv.conf \
     --network-plugin cni $KUBELET_ARGS $KUBELET_EXTRA_ARGS
 
-Restart=on-failure
+Restart=always
 RestartSec=5
-RestartForceExitStatus=SIGPIPE
 KillMode=process
 
 [Install]
