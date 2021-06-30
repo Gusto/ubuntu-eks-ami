@@ -5,22 +5,21 @@
     "ami_groups": "",
     "creator": "{{env `USER`}}",
     "kms_key_id": "",
-
     "binary_bucket_name": "amazon-eks",
     "binary_bucket_region": "us-west-2",
     "kubernetes_version": null,
     "kubernetes_build_date": "",
     "docker_version": "19.03",
-    "cni_version": "v0.6.0",
-    "cni_plugin_version": "v0.7.5",
+    "containerd_version": "1.4",
+    "runc_version": "1.0.0",
+    "cni_plugin_version": "v0.8.6",
     "pull_cni_from_github": "true",
-
     "source_ami_owners": "099720109477",
     "source_ami_filter_name": "ubuntu/images/hvm-ssd/ubuntu-bionic-18.04-*",
     "arch": null,
     "instance_type": null,
     "ami_description": "EKS Kubernetes Worker AMI with Ubuntu 18.04 image",
-
+    "cleanup_image": "true",
     "security_group_id": "",
     "ssh_interface": "",
     "ssh_username": "ubuntu",
@@ -30,6 +29,7 @@
     "launch_block_device_mappings_volume_size": "10",
     "ami_users" : "",
     "aadditional_apt_repos" : "",
+    "sonobuoy_e2e_registry": "",
     "aws_access_key" : "",
     "aws_secret_key" : "",
     "aws_token" : ""
@@ -55,7 +55,9 @@
           "state": "available",
           "virtualization-type": "hvm"
         },
-        "owners": [ "{{user `source_ami_owners`}}" ],
+        "owners": [
+          "{{user `source_ami_owners`}}"
+        ],
         "most_recent": true
       },
       "instance_type": "{{user `instance_type`}}",
@@ -81,34 +83,39 @@
       "ssh_pty": true,
       "kms_key_id": "{{user `kms_key_id`}}",
       "run_tags": {
-          "creator": "{{user `creator`}}"
+        "creator": "{{user `creator`}}"
       },
       "tags": {
-          "Name": "{{user `ami_name`}}",
-          "created": "{{timestamp}}",
-          "docker_version": "{{ user `docker_version`}}",
-          "source_ami_id": "{{ user `source_ami_id`}}",
-          "kubernetes": "{{ user `kubernetes_version`}}/{{ user `kubernetes_build_date` }}/bin/linux/{{ user `arch` }}",
-          "cni_version": "{{ user `cni_version`}}",
-          "cni_plugin_version": "{{ user `cni_plugin_version`}}"
+        "Name": "{{user `ami_name`}}",
+        "created": "{{timestamp}}",
+        "docker_version": "{{ user `docker_version`}}",
+        "containerd_version": "{{ user `containerd_version`}}",
+        "source_ami_id": "{{ user `source_ami_id`}}",
+        "kubernetes": "{{ user `kubernetes_version`}}/{{ user `kubernetes_build_date` }}/bin/linux/{{ user `arch` }}",
+        "cni_plugin_version": "{{ user `cni_plugin_version`}}"
       },
       "ami_name": "{{user `ami_name`}}",
-      "ami_description": "{{user `ami_description` }}, (k8s: {{ user `version`}}, docker:{{ user `docker_version`}})"
+      "ami_description": "{{user `ami_description` }}, (k8s: {{ user `version` }}, docker: {{ user `docker_version` }}, containerd: {{ user `containerd_version` }})"
     }
   ],
-
   "provisioners": [
     {
       "type": "shell",
       "remote_folder": "{{ user `remote_folder`}}",
       "expect_disconnect": true,
-      "script": "{{template_dir}}/scripts/upgrade_kernel.sh"
+      "script": "{{template_dir}}/scripts/upgrade_kernel.sh",
+      "environment_vars": [
+        "KUBERNETES_VERSION={{user `kubernetes_version`}}",
+        "KERNEL_VERSION={{user `kernel_version`}}"
+      ]
     },
     {
       "type": "shell",
       "pause_before": "90s",
       "remote_folder": "{{ user `remote_folder`}}",
-      "inline": ["mkdir -p /tmp/worker/"]
+      "inline": [
+        "mkdir -p /tmp/worker/"
+      ]
     },
     {
       "type": "file",
@@ -132,9 +139,12 @@
         "BINARY_BUCKET_NAME={{user `binary_bucket_name`}}",
         "BINARY_BUCKET_REGION={{user `binary_bucket_region`}}",
         "DOCKER_VERSION={{user `docker_version`}}",
-        "CNI_VERSION={{user `cni_version`}}",
+        "CONTAINERD_VERSION={{user `containerd_version`}}",
+        "RUNC_VERSION={{user `runc_version`}}",
         "CNI_PLUGIN_VERSION={{user `cni_plugin_version`}}",
-        "PULL_CNI_FROM_GITHUB={{user `pull_cni_from_github`}}"
+        "PULL_CNI_FROM_GITHUB={{user `pull_cni_from_github`}}",
+        "CLEANUP_IMAGE={{user `cleanup_image`}}",
+        "SONOBUOY_E2E_REGISTRY={{user `sonobuoy_e2e_registry`}}"
       ]
     },
     {
