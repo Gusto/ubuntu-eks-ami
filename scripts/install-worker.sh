@@ -25,8 +25,7 @@ validate_env_set() {
 validate_env_set BINARY_BUCKET_NAME
 validate_env_set BINARY_BUCKET_REGION
 validate_env_set DOCKER_VERSION
-validate_env_set CONTAINERD_VERSION
-validate_env_set RUNC_VERSION
+validate_env_set CONTAINERDIO_VERSION
 validate_env_set CNI_PLUGIN_VERSION
 validate_env_set KUBERNETES_VERSION
 validate_env_set KUBERNETES_BUILD_DATE
@@ -163,11 +162,8 @@ if [[ "$INSTALL_DOCKER" == "true" ]]; then
   sudo apt-get install -y docker-ce=${DOCKER_VERSION}
   sudo usermod -aG docker $USER
 
-  # install runc
-  sudo apt-get install -y runc=${RUNC_VERSION}
-
-  # install condtainerd
-  sudo apt-get install -y containerd=${CONTAINERD_VERSION}
+  # install condtainerd.io, which includes containerd and runc
+  sudo apt-get install -y containerd.io=${CONTAINERDIO_VERSION}
 
   sudo mkdir -p /etc/docker
   sudo mv $TEMPLATE_DIR/docker-daemon.json /etc/docker/daemon.json
@@ -244,12 +240,12 @@ else
     sudo wget "$S3_URL_BASE/${CNI_PLUGIN_FILENAME}.tgz.sha256"
   fi
   sudo sha256sum -c "${CNI_PLUGIN_FILENAME}.tgz.sha256"
+  sudo rm ./*.sha256
 fi
 
 sudo tar -xvf "${CNI_PLUGIN_FILENAME}.tgz" -C /opt/cni/bin
 rm "${CNI_PLUGIN_FILENAME}.tgz"
 
-sudo rm ./*.sha256
 
 sudo mkdir -p /etc/kubernetes/kubelet
 sudo mkdir -p /etc/systemd/system/kubelet.service.d
@@ -289,16 +285,9 @@ fi
 ### SSM Agent ##################################################################
 ################################################################################
 
-if [ "$BINARY_BUCKET_REGION" != "us-iso-east-1" ] && [ "$BINARY_BUCKET_REGION" != "us-isob-east-1" ]; then
-    if [ "$BINARY_BUCKET_REGION" = "cn-north-1" ] || [ "$BINARY_BUCKET_REGION" = "cn-northwest-1" ]; then
-        sudo yum install -y https://s3.cn-north-1.amazonaws.com.cn/amazon-ssm-cn-north-1/latest/linux_$ARCH/amazon-ssm-agent.rpm
-    else
-        sudo yum install -y https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/linux_$ARCH/amazon-ssm-agent.rpm
-    fi
-
-    sudo systemctl enable amazon-ssm-agent
-    sudo systemctl start amazon-ssm-agent
-fi
+# The EC2 instance should already have the SSM agent installed
+# https://docs.aws.amazon.com/systems-manager/latest/userguide/sysman-manual-agent-install.html
+# You can check the agent status by running sudo systemctl status snap.amazon-ssm-agent.amazon-ssm-agent.service
 
 ################################################################################
 ### AMI Metadata ###############################################################
