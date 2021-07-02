@@ -340,6 +340,7 @@ if [[ -z "${DNS_CLUSTER_IP}" ]]; then
     if [[ "$TEN_RANGE" != "0" ]]; then
       DNS_CLUSTER_IP=172.20.0.10
     fi
+  fi
 else
   DNS_CLUSTER_IP="${DNS_CLUSTER_IP}"
 fi
