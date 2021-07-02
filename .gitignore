@@ -1,5 +1,6 @@
-manifest.json
+*manifest.json
 *.swp
 variables.json
 packer
 /*.sh
+.idea
