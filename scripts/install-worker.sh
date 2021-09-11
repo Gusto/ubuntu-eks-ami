@@ -163,7 +163,7 @@ if [[ "$INSTALL_DOCKER" == "true" ]]; then
   sudo usermod -aG docker $USER
 
   # install condtainerd.io, which includes containerd and runc
-  sudo apt-get install -y containerd.io=${CONTAINERDIO_VERSION}
+  sudo apt-get install -y containerd.io=${CONTAINERDIO_VERSION} --allow-downgrades
 
   sudo mkdir -p /etc/docker
   sudo mv $TEMPLATE_DIR/docker-daemon.json /etc/docker/daemon.json
