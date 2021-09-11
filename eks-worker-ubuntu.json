@@ -10,7 +10,7 @@
     "kubernetes_version": null,
     "kubernetes_build_date": "",
     "docker_version": "5:19.03.15~3-0~ubuntu-bionic",
-    "containerdio_version": "1.4.6-1",
+    "containerdio_version": "1.4.6-2",
     "cni_plugin_version": "v0.8.6",
     "pull_cni_from_github": "true",
     "source_ami_owners": "099720109477",
